@@ -3,77 +3,124 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Yakutian Laika Puppy Colour Predictor</title>
+  <title>Yakutian Laika — Puppy Colour Predictor</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>Yakutian Laika — Puppy Colour Predictor</h1>
+  <main class="app">
+    <header class="app-header">
+      <h1>Yakutian Laika — Puppy Colour Predictor</h1>
+    </header>
 
-    <section class="parents">
-      <div class="parent">
-        <h2>Parent A</h2>
-        <div class="locus-row">
-          <label>K locus</label>
-          <select id="A_K"></select>
+    <section class="layout">
+      <aside class="col col-left">
+        <div class="card guide">
+          <h2>User guide</h2>
+          <ol>
+            <li>Select alleles for <strong>Sire</strong> and <strong>Dam</strong>.</li>
+            <li>Click <strong>Predict</strong> to compute offspring genotype & phenotype probabilities.</li>
+            <li>Switch results view: List, Table, or Pie chart.</li>
+            <li>Use Reset to clear selections.</li>
+          </ol>
         </div>
-        <div class="locus-row">
-          <label>E locus</label>
-          <select id="A_E"></select>
-        </div>
-        <div class="locus-row">
-          <label>A locus</label>
-          <select id="A_A"></select>
-        </div>
-        <div class="locus-row">
-          <label>B locus</label>
-          <select id="A_B"></select>
-        </div>
-        <div class="locus-row">
-          <label>D locus</label>
-          <select id="A_D"></select>
-        </div>
-      </div>
+      </aside>
 
-      <div class="parent">
-        <h2>Parent B</h2>
-        <div class="locus-row">
-          <label>K locus</label>
-          <select id="B_K"></select>
+      <section class="col col-center">
+        <div class="parents-row">
+          <div class="parent card parent-sire" id="parentA">
+            <h3>Sire</h3>
+
+            <div class="loci" id="sire-loci">
+              <!-- Script will populate locus blocks with selects -->
+              <!-- Example locus block structure expected by script.js:
+              <div class="locus" data-locus="K">
+                <label>K Locus</label>
+                <select class="allele a1"></select>
+                <select class="allele a2"></select>
+                <div class="swatch photo-placeholder" data-locus="K"></div>
+              </div>
+              -->
+            </div>
+          </div>
+
+          <div class="parent card parent-dam" id="parentB">
+            <h3>Dam</h3>
+
+            <div class="loci" id="dam-loci">
+              <!-- Script will populate -->
+            </div>
+          </div>
         </div>
-        <div class="locus-row">
-          <label>E locus</label>
-          <select id="B_E"></select>
+
+        <div class="controls card controls-row">
+          <div class="controls-left">
+            <button id="predictBtn" class="btn primary">Predict</button>
+            <button id="resetBtn" class="btn">Reset</button>
+          </div>
+
+          <div class="controls-right">
+            <label class="view-toggle">
+              <span>View:</span>
+              <select id="resultView">
+                <option value="list">List</option>
+                <option value="table">Table/Grid</option>
+                <option value="pie">Pie chart</option>
+              </select>
+            </label>
+            <label class="compact-toggle">
+              <input type="checkbox" id="compactMode" />
+              Compact
+            </label>
+          </div>
         </div>
-        <div class="locus-row">
-          <label>A locus</label>
-          <select id="B_A"></select>
+
+        <div id="results" class="card results">
+          <div class="results-header">
+            <h2>Predictions</h2>
+            <div class="results-actions">
+              <button id="exportBtn" class="btn">Export</button>
+            </div>
+          </div>
+
+          <div id="resultsList" class="results-list" hidden></div>
+          <div id="resultsTable" class="results-table" hidden></div>
+          <div id="resultsPie" class="results-pie" hidden>
+            <canvas id="pieChartCanvas" width="400" height="400"></canvas>
+          </div>
         </div>
-        <div class="locus-row">
-          <label>B locus</label>
-          <select id="B_B"></select>
+      </section>
+
+      <aside class="col col-right">
+        <div class="card legend">
+          <h2>Key / Legend</h2>
+          <ul class="legend-list">
+            <li><span class="legend-swatch" style="background:#222"></span> Dominant</li>
+            <li><span class="legend-swatch" style="background:#666"></span> Recessive</li>
+            <li><span class="legend-swatch" style="background:#aaa"></span> Modifier</li>
+          </ul>
+
+          <h3>Genes (order)</h3>
+          <ol class="gene-list">
+            <li>K Locus — Kᴮ, kʸ</li>
+            <li>Extension — E, Eᵐ, e</li>
+            <li>Agouti — aʷ, aʸ, aᵗ, a</li>
+            <li>B Locus — B, b</li>
+            <li>D Locus — D, d</li>
+            <li>G Locus — G, g</li>
+            <li>I Locus — I, i</li>
+            <li>S Locus — S, sᵖ</li>
+            <li>T Locus — T, t</li>
+          </ol>
         </div>
-        <div class="locus-row">
-          <label>D locus</label>
-          <select id="B_D"></select>
-        </div>
-      </div>
+      </aside>
     </section>
 
-    <div class="controls">
-      <button id="predictBtn">Predict</button>
-      <button id="randomBtn" title="Fill random genotypes">Random</button>
-      <button id="resetBtn" title="Set to default heterozygous/clear">Reset</button>
-    </div>
-
-    <section id="results" class="results" aria-live="polite"></section>
-
-    <footer class="notes">
-      <p>Rules implemented: E (ee → recessive yellow), K (Kb dominant black; ky permissive), A (AY, AW, at, aa with assumed recessivity for at and aa), B (bb → brown), D (dd → dilute). See README in code for where to change rules.</p>
+    <footer class="app-footer">
+      <small>May 27, 2026</small>
     </footer>
   </main>
 
-  <script src="data.json" type="application/json" id="datajson"></script>
   <script src="script.js"></script>
+  <!-- Include chart.js later in script.js or via CDN when enabling pie chart -->
 </body>
 </html>
