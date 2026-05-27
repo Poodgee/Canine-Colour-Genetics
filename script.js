@@ -1,13 +1,22 @@
 /* script.js
- Implements Mendelian crosses for loci in data.json (embedded as <script type="application/json" id="datajson">).
- Produces genotype and phenotype probability breakdowns using the agreed rules.
+ Loads data.json via fetch then initializes the app.
 */
 
-(() => {
-  const data = JSON.parse(document.getElementById('datajson').textContent);
+(async () => {
+  // load data.json
+  let data;
+  try {
+    const resp = await fetch('data.json', {cache: 'no-store'});
+    if (!resp.ok) throw new Error('Failed to load data.json: ' + resp.status);
+    data = await resp.json();
+  } catch (err) {
+    document.body.innerHTML = '<pre style="color:#f88;padding:16px">Error loading data.json: '+err.message+'</pre>';
+    console.error(err);
+    return;
+  }
 
+  // --- begin original code, using `data` variable ---
   const lociOrder = ['K','E','A','B','D'];
-  // Map locus -> allele options to display (all possible diploid combos)
   const alleleOptions = {
     K: ['Kb/Kb','Kb/ky','ky/ky'],
     E: ['E/E','E/e','e/e'],
@@ -16,7 +25,6 @@
     D: ['D/D','D/d','d/d']
   };
 
-  // Helper: populate selects
   function populateSelect(id, locus){
     const sel = document.getElementById(id);
     sel.innerHTML = '';
@@ -28,14 +36,12 @@
     });
   }
 
-  // Fill all selects
   populateSelect('A_K','K'); populateSelect('B_K','K');
   populateSelect('A_E','E'); populateSelect('B_E','E');
   populateSelect('A_A','A'); populateSelect('B_A','A');
   populateSelect('A_B','B'); populateSelect('B_B','B');
   populateSelect('A_D','D'); populateSelect('B_D','D');
 
-  // Defaults: set heterozygous-ish sensible defaults
   function setDefaults(){
     document.getElementById('A_K').value='Kb/ky';
     document.getElementById('B_K').value='ky/ky';
@@ -50,7 +56,6 @@
   }
   setDefaults();
 
-  // Randomize
   function randomFill(){
     for(const p of ['A','B']){
       for(const locus of lociOrder){
@@ -61,28 +66,21 @@
     }
   }
 
-  // Parse allele pair string "A/B" -> [A,B]
   function parsePair(s){
     return s.split('/').map(x=>x.trim());
   }
 
-  // Given parent allele pair for locus, return gametes probabilities (equal)
-  // E.g., parent 'A/B' => gametes A (50%), B (50%); if homozygous A/A => A 100%
   function gametes(pair){
     const [a,b]=pair;
     if(a===b) return {[a]:1};
     return {[a]:0.5,[b]:0.5};
   }
 
-  // Cross two gamete maps => offspring genotype map (normalized counts)
   function crossGametes(g1,g2){
     const out = {};
     for(const a in g1){
       for(const b in g2){
         const prob = g1[a]*g2[b];
-        // canonical order: put known ordering for A locus for readability else alphabetical
-        const key = `${a}/${b}`;
-        // normalize allele order so e.g., A/B and B/A map same: sort by string
         const parts = [a,b].sort();
         const k2 = `${parts[0]}/${parts[1]}`;
         out[k2] = (out[k2]||0)+prob;
@@ -91,9 +89,7 @@
     return out;
   }
 
-  // Combine per-locus genotype distributions into full-genotype distribution (product)
   function combineLoci(distMap){
-    // distMap: { locus: {genotype:prob, ...}, ...}
     let combined = {'':1};
     for(const locus of lociOrder){
       const locusMap = distMap[locus];
@@ -110,18 +106,13 @@
     return combined;
   }
 
-  // Phenotype resolver: from a full genotype entry produce phenotype string and short genotype summary
   function phenotypeFromFull(entry){
-    // entry is a string like "K:Kb/ky | E:E/e | A:AW/at | B:B/b | D:D/d"
-    // parse into map
     const parts = entry.split(' | ').map(p=>p.trim());
     const map = {};
     parts.forEach(part=>{
       const [l,g]=part.split(':');
       map[l]=g;
     });
-
-    // helper to check homozygous
     function isHomo(locus,allele){
       const g = parsePair(map[locus]);
       return g[0]===allele && g[1]===allele;
@@ -130,30 +121,20 @@
       const g = parsePair(map[locus]);
       return g[0]===allele || g[1]===allele;
     }
-
-    // 1) E locus ee -> recessive yellow (regardless)
     if(isHomo('E','e')){
       return {phen:'Recessive yellow (ee)', short:'ee; yellow', note:'ee overrides eumelanin'};
     }
-
-    // 2) K locus: if any Kb present -> dominant black
     if(hasAllele('K','Kb')){
-      // dominant black phenotype; still modified by B and D (and A ignored)
       const brown = isHomo('B','b');
       const dilute = isHomo('D','d');
       let color = brown ? 'brown' : 'black';
       if(dilute) color = brown ? 'lilac (diluted brown)' : 'blue (diluted black)';
       return {phen:`Dominant black (${color})`, short:`Kb present; ${brown?'bb':''} ${dilute?'dd':''}`};
     }
-
-    // 3) kyky -> A locus expresses
-    // A resolution order: AY > AW > at > aa
     if(isHomo('A','AY') || hasAllele('A','AY')){
       return {phen:'Dominant yellow (AY)', short:'AY present'};
     }
-    // treat AW as wild-type if present and no AY
     if(hasAllele('A','AW') && !hasAllele('A','at') && !hasAllele('A','a')){
-      // AW with B/D modifiers
       const brown = isHomo('B','b');
       const dilute = isHomo('D','d');
       let base = 'agouti';
@@ -161,16 +142,13 @@
       if(dilute) color += ' (diluted)';
       return {phen:base + ' — ' + color, short:`A:AW; ${brown?'bb':''} ${dilute?'dd':''}`};
     }
-    // at: black-and-tan — assume at must be at/at to show (recessive), otherwise treat AW dominance
     if(isHomo('A','at')){
-      // black-and-tan expresses if A locus at/at and K is kyky and E not ee
       const brown = isHomo('B','b');
       const dilute = isHomo('D','d');
       let color = brown ? 'brown and tan' : 'black and tan';
       if(dilute) color += ' (diluted)';
       return {phen:'Black and tan (at/at) — ' + color, short:'at/at'};
     }
-    // aa recessive black requires aa
     if(isHomo('A','a')){
       const brown = isHomo('B','b');
       const dilute = isHomo('D','d');
@@ -178,8 +156,6 @@
       if(dilute) color += ' (diluted)';
       return {phen:'Recessive black (aa) — ' + color, short:'aa'};
     }
-
-    // Fallback: treat as AW/agouti default
     const brown = isHomo('B','b');
     const dilute = isHomo('D','d');
     let color = brown ? 'brown agouti' : 'agouti/wild-type';
@@ -187,7 +163,6 @@
     return {phen:color, short:'default agouti/wild-type'};
   }
 
-  // On Predict: for each locus create distribution map
   function computeDistribution(){
     const locusDist = {};
     for(const locus of lociOrder){
@@ -195,20 +170,17 @@
       const pB = parsePair(document.getElementById('B_'+locus).value);
       const g1 = gametes(pA);
       const g2 = gametes(pB);
-      const cross = crossGametes(g1,g2); // map genotype->prob
+      const cross = crossGametes(g1,g2);
       locusDist[locus] = cross;
     }
-    // Combine
-    const combined = combineLoci(locusDist); // full genotype -> prob
+    const combined = combineLoci(locusDist);
     return combined;
   }
 
-  // Render results
   function renderResults(){
     const out = document.getElementById('results');
     out.innerHTML = '<div class="small">Calculating...</div>';
     const combined = computeDistribution();
-    // Map phenotype -> aggregated prob and sample genotype examples
     const phenMap = {};
     for(const entry in combined){
       const prob = combined[entry];
@@ -218,12 +190,8 @@
       phenMap[key].prob += prob;
       if(phenMap[key].examples.length<3) phenMap[key].examples.push({gen:entry, short:ph.short});
     }
-
-    // Sort phenotypes by probability desc
     const rows = Object.entries(phenMap).sort((a,b)=>b[1].prob - a[1].prob);
-
     if(rows.length===0){ out.innerHTML='<div class="small">No results</div>'; return; }
-
     out.innerHTML = '';
     rows.forEach(([phen,info])=>{
       const pct = (info.prob*100).toFixed(1);
@@ -244,8 +212,6 @@
       `;
       out.appendChild(div);
     });
-
-    // also append a small legend / total check
     const total = Object.values(combined).reduce((s,v)=>s+v,0);
     const check = document.createElement('div');
     check.className='small';
@@ -258,7 +224,6 @@
   document.getElementById('randomBtn').addEventListener('click', ()=>{ randomFill(); });
   document.getElementById('resetBtn').addEventListener('click', setDefaults);
 
-  // initial render
   renderResults();
-
+  // --- end original code ---
 })();
