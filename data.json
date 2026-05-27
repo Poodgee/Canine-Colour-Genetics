@@ -1,0 +1,36 @@
+{
+  "loci": {
+    "K": {
+      "name": "K (dominance)",
+      "alleles": ["Kb","ky"],
+      "notes": "Kb is dominant black. ky permissive to A locus."
+    },
+    "E": {
+      "name": "E (extension)",
+      "alleles": ["E","e"],
+      "notes": "ee = recessive yellow (eumelanin suppressed)."
+    },
+    "A": {
+      "name": "A (agouti series)",
+      "alleles": ["AY","AW","at","a"],
+      "notes": "Order used: AY > AW > at > a. at and a treated as recessive patterns where noted."
+    },
+    "B": {
+      "name": "B (brown)",
+      "alleles": ["B","b"],
+      "notes": "bb converts black eumelanin to brown."
+    },
+    "D": {
+      "name": "D (dilution)",
+      "alleles": ["D","d"],
+      "notes": "dd dilutes black->blue, brown->lilac."
+    }
+  },
+  "assumptions": {
+    "A_at_recessive": true,
+    "A_aa_recessive": true,
+    "AY_is_dominant": true,
+    "Kb_is_dominant": true,
+    "E_ee_overrides": true
+  }
+}
