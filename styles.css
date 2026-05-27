@@ -1,4 +1,144 @@
 :root{
+  --bg:#0b0f12;
+  --card:#0f1619;
+  --muted:#9aa6ad;
+  --accent:#7bd389;
+  --text:#e6f0f2;
+  --glass: rgba(255,255,255,0.03);
+  --gap:12px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size:15px;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,var(--bg),#071018);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:24px;
+}
+.container{
+  max-width:980px;
+  margin:0 auto;
+  background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
+  border:1px solid rgba(255,255,255,0.03);
+  border-radius:12px;
+  padding:20px;
+  box-shadow: 0 6px 30px rgba(2,6,8,0.6);
+}
+h1{margin:0 0 14px 0;font-size:20px}
+.layout{display:grid;grid-template-columns:200px 1fr 260px;gap:18px}
+
+/* Left guide */
+.card{background:transparent}
+.guide{padding:0}
+
+/* Parents */
+.parents{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.parent{
+  background:var(--card);
+  border-radius:10px;
+  padding:12px;
+  flex:1;
+  min-width:260px;
+}
+.parent h3{margin:0 0 8px 0;font-size:15px}
+
+/* Locus rows */
+.locus-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+}
+.locus-row label{
+  width:86px;
+  font-size:13px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+select{
+  flex:1;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:var(--glass);
+  color:var(--text);
+  outline:none;
+}
+
+/* Controls */
+.controls{
+  margin:12px 0;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+button{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.06);
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+}
+button#predictBtn{
+  background:linear-gradient(90deg,#123237,#13443b);
+  border-color:transparent;
+  color:#eafff3;
+  box-shadow:0 4px 18px rgba(12,50,40,0.4);
+}
+.results{
+  margin-top:8px;
+  padding:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.03);
+}
+.result-item{padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01);display:flex;gap:12px;align-items:center}
+.swatch{width:44px;height:28px;border-radius:6px;background:#222;border:1px solid rgba(255,255,255,0.03)}
+.genos{font-family:monospace;color:var(--muted);font-size:13px}
+.small{font-size:13px;color:var(--muted)}
+footer.notes{margin-top:12px;color:var(--muted);font-size:13px}
+
+/* Right column key table */
+.card.legend{
+  background:transparent;
+  padding:0;
+}
+.key-table{width:100%;border-collapse:collapse;color:var(--muted);font-size:13px}
+.key-table thead th{text-align:left;padding:6px 8px;color:var(--text);font-size:13px}
+.key-table tbody td{padding:6px 8px;border-top:1px solid rgba(255,255,255,0.02)}
+.key-table tbody tr:nth-child(even){background:rgba(255,255,255,0.005)}
+
+/* Pie card */
+.pie-card{background:var(--card);border-radius:10px;padding:12px;margin-top:12px;display:flex;flex-direction:column;align-items:center}
+
+/* hint tooltip */
+.hint{
+  background:transparent;border:none;color:var(--accent);font-weight:700;cursor:pointer;border-radius:6px;padding:2px 6px;
+}
+.hint:focus{outline:2px solid rgba(123,211,137,0.12)}
+.hint-tip{
+  position:fixed;background:#071014;color:var(--text);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);max-width:260px;z-index:1000;font-size:13px;box-shadow:0 6px 20px rgba(2,6,8,0.6)
+}
+
+/* responsive */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:14px}
+  .parents{flex-direction:column}
+}
+:root{
   --bg:#0f1113;
   --card:#121417;
   --muted:#9aa0a6;
