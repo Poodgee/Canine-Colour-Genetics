@@ -1,0 +1,96 @@
+:root{
+  --bg:#0b0f12;
+  --card:#0f1619;
+  --muted:#9aa6ad;
+  --accent:#7bd389;
+  --text:#e6f0f2;
+  --glass: rgba(255,255,255,0.03);
+  --gap:12px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size:15px;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,var(--bg),#071018);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:24px;
+}
+.container{
+  max-width:980px;
+  margin:0 auto;
+  background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
+  border:1px solid rgba(255,255,255,0.03);
+  border-radius:12px;
+  padding:20px;
+  box-shadow: 0 6px 30px rgba(2,6,8,0.6);
+}
+h1{margin:0 0 14px 0;font-size:20px}
+.parents{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.parent{
+  background:var(--card);
+  border-radius:10px;
+  padding:12px;
+  flex:1;
+  min-width:260px;
+}
+.locus-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+}
+.locus-row label{
+  width:86px;
+  font-size:13px;
+  color:var(--muted);
+}
+select{
+  flex:1;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:var(--glass);
+  color:var(--text);
+  outline:none;
+}
+.controls{
+  margin:12px 0;
+  display:flex;
+  gap:8px;
+}
+button{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.06);
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+}
+button#predictBtn{
+  background:linear-gradient(90deg,#123237,#13443b);
+  border-color:transparent;
+  color:#eafff3;
+  box-shadow:0 4px 18px rgba(12,50,40,0.4);
+}
+.results{
+  margin-top:8px;
+  padding:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.03);
+}
+.result-item{padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01);display:flex;gap:12px;align-items:center}
+.swatch{width:44px;height:28px;border-radius:6px;background:#222;border:1px solid rgba(255,255,255,0.03)}
+.genos{font-family:monospace;color:var(--muted);font-size:13px}
+.small{font-size:13px;color:var(--muted)}
+footer.notes{margin-top:12px;color:var(--muted);font-size:13px}
