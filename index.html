@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Yakutian Laika Puppy Colour Predictor</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Yakutian Laika — Puppy Colour Predictor</h1>
+
+    <section class="parents">
+      <div class="parent">
+        <h2>Parent A</h2>
+        <div class="locus-row">
+          <label>K locus</label>
+          <select id="A_K"></select>
+        </div>
+        <div class="locus-row">
+          <label>E locus</label>
+          <select id="A_E"></select>
+        </div>
+        <div class="locus-row">
+          <label>A locus</label>
+          <select id="A_A"></select>
+        </div>
+        <div class="locus-row">
+          <label>B locus</label>
+          <select id="A_B"></select>
+        </div>
+        <div class="locus-row">
+          <label>D locus</label>
+          <select id="A_D"></select>
+        </div>
+      </div>
+
+      <div class="parent">
+        <h2>Parent B</h2>
+        <div class="locus-row">
+          <label>K locus</label>
+          <select id="B_K"></select>
+        </div>
+        <div class="locus-row">
+          <label>E locus</label>
+          <select id="B_E"></select>
+        </div>
+        <div class="locus-row">
+          <label>A locus</label>
+          <select id="B_A"></select>
+        </div>
+        <div class="locus-row">
+          <label>B locus</label>
+          <select id="B_B"></select>
+        </div>
+        <div class="locus-row">
+          <label>D locus</label>
+          <select id="B_D"></select>
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button id="predictBtn">Predict</button>
+      <button id="randomBtn" title="Fill random genotypes">Random</button>
+      <button id="resetBtn" title="Set to default heterozygous/clear">Reset</button>
+    </div>
+
+    <section id="results" class="results" aria-live="polite"></section>
+
+    <footer class="notes">
+      <p>Rules implemented: E (ee → recessive yellow), K (Kb dominant black; ky permissive), A (AY, AW, at, aa with assumed recessivity for at and aa), B (bb → brown), D (dd → dilute). See README in code for where to change rules.</p>
+    </footer>
+  </main>
+
+  <script src="data.json" type="application/json" id="datajson"></script>
+  <script src="script.js"></script>
+</body>
+</html>
