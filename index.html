@@ -13,104 +13,201 @@
     </header>
 
     <section class="layout">
+      <!-- Left: Quick Guide -->
       <aside class="col col-left">
         <div class="card guide">
-          <h2>User guide</h2>
+          <h2>Quick Guide</h2>
           <ol>
             <li>Select alleles for <strong>Sire</strong> and <strong>Dam</strong>.</li>
             <li>Click <strong>Predict</strong> to compute offspring genotype & phenotype probabilities.</li>
             <li>Switch results view: List, Table, or Pie chart.</li>
-            <li>Use Reset to clear selections.</li>
+            <li>Use Reset to restore default genotype selections.</li>
           </ol>
         </div>
       </aside>
 
+      <!-- Center: Parents & Controls & Predictions -->
       <section class="col col-center">
-        <div class="parents-row">
-          <div class="parent card parent-sire" id="parentA">
-            <h3>Sire</h3>
+        <div class="card parents-card">
+          <div class="parents-header">
+            <div class="parent-title">Sire</div>
+            <div class="parent-title">Dam</div>
+          </div>
 
-            <div class="loci" id="sire-loci">
-              <!-- Script will populate locus blocks with selects -->
-              <!-- Example locus block structure expected by script.js:
-              <div class="locus" data-locus="K">
-                <label>K Locus</label>
-                <select class="allele a1"></select>
-                <select class="allele a2"></select>
-                <div class="swatch photo-placeholder" data-locus="K"></div>
+          <div class="parents-row">
+            <div class="parent-block" id="parentA">
+              <div class="loci" id="sire-loci">
+                <!-- Static placeholders to preview layout -->
+                <div class="locus" data-locus="K">
+                  <label>K Locus</label>
+                  <select class="select-pill" aria-label="Sire K allele 1"><option>Kᴮ</option><option>kʸ</option></select>
+                  <select class="select-pill" aria-label="Sire K allele 2"><option>Kᴮ</option><option>kʸ</option></select>
+                </div>
+
+                <div class="locus" data-locus="E">
+                  <label>Extension</label>
+                  <select class="select-pill"><option>E</option><option>Eᵐ</option><option>e</option></select>
+                  <select class="select-pill"><option>E</option><option>Eᵐ</option><option>e</option></select>
+                </div>
+
+                <div class="locus agouti" data-locus="A">
+                  <label>Agouti</label>
+                  <div class="agouti-pair">
+                    <select class="select-small" aria-label="Sire A1"><option>aʷ</option><option>aʸ</option><option>aᵗ</option><option>a</option></select>
+                    <select class="select-small" aria-label="Sire A2"><option>aʷ</option><option>aʸ</option><option>aᵗ</option><option>a</option></select>
+                  </div>
+                </div>
+
+                <div class="locus" data-locus="B">
+                  <label>B Locus</label>
+                  <select class="select-pill"><option>B</option><option>b</option></select>
+                  <select class="select-pill"><option>B</option><option>b</option></select>
+                </div>
+
+                <div class="locus" data-locus="D">
+                  <label>D Locus</label>
+                  <select class="select-pill"><option>D</option><option>d</option></select>
+                  <select class="select-pill"><option>D</option><option>d</option></select>
+                </div>
+
+                <div class="locus" data-locus="G">
+                  <label>G Locus</label>
+                  <select class="select-pill"><option>G</option><option>g</option></select>
+                  <select class="select-pill"><option>G</option><option>g</option></select>
+                </div>
+
+                <div class="locus" data-locus="I">
+                  <label>I Locus</label>
+                  <select class="select-pill"><option>I</option><option>i</option></select>
+                  <select class="select-pill"><option>I</option><option>i</option></select>
+                </div>
+
+                <div class="locus" data-locus="S">
+                  <label>S Locus</label>
+                  <select class="select-pill"><option>S</option><option>sᵖ</option></select>
+                  <select class="select-pill"><option>S</option><option>sᵖ</option></select>
+                </div>
+
+                <div class="locus" data-locus="T">
+                  <label>T Locus</label>
+                  <select class="select-pill"><option>T</option><option>t</option></select>
+                  <select class="select-pill"><option>T</option><option>t</option></select>
+                </div>
+
               </div>
-              -->
+            </div>
+
+            <div class="parent-block" id="parentB">
+              <div class="loci" id="dam-loci">
+                <!-- Mirror placeholders for Dam -->
+                <div class="locus" data-locus="K">
+                  <label>K Locus</label>
+                  <select class="select-pill"><option>Kᴮ</option><option>kʸ</option></select>
+                  <select class="select-pill"><option>Kᴮ</option><option>kʸ</option></select>
+                </div>
+
+                <div class="locus" data-locus="E">
+                  <label>Extension</label>
+                  <select class="select-pill"><option>E</option><option>Eᵐ</option><option>e</option></select>
+                  <select class="select-pill"><option>E</option><option>Eᵐ</option><option>e</option></select>
+                </div>
+
+                <div class="locus agouti" data-locus="A">
+                  <label>Agouti</label>
+                  <div class="agouti-pair">
+                    <select class="select-small"><option>aʷ</option><option>aʸ</option><option>aᵗ</option><option>a</option></select>
+                    <select class="select-small"><option>aʷ</option><option>aʸ</option><option>aᵗ</option><option>a</option></select>
+                  </div>
+                </div>
+
+                <div class="locus" data-locus="B">
+                  <label>B Locus</label>
+                  <select class="select-pill"><option>B</option><option>b</option></select>
+                  <select class="select-pill"><option>B</option><option>b</option></select>
+                </div>
+
+                <div class="locus" data-locus="D">
+                  <label>D Locus</label>
+                  <select class="select-pill"><option>D</option><option>d</option></select>
+                  <select class="select-pill"><option>D</option><option>d</option></select>
+                </div>
+
+                <div class="locus" data-locus="G">
+                  <label>G Locus</label>
+                  <select class="select-pill"><option>G</option><option>g</option></select>
+                  <select class="select-pill"><option>G</option><option>g</option></select>
+                </div>
+
+                <div class="locus" data-locus="I">
+                  <label>I Locus</label>
+                  <select class="select-pill"><option>I</option><option>i</option></select>
+                  <select class="select-pill"><option>I</option><option>i</option></select>
+                </div>
+
+                <div class="locus" data-locus="S">
+                  <label>S Locus</label>
+                  <select class="select-pill"><option>S</option><option>sᵖ</option></select>
+                  <select class="select-pill"><option>S</option><option>sᵖ</option></select>
+                </div>
+
+                <div class="locus" data-locus="T">
+                  <label>T Locus</label>
+                  <select class="select-pill"><option>T</option><option>t</option></select>
+                  <select class="select-pill"><option>T</option><option>t</option></select>
+                </div>
+
+              </div>
             </div>
           </div>
 
-          <div class="parent card parent-dam" id="parentB">
-            <h3>Dam</h3>
-
-            <div class="loci" id="dam-loci">
-              <!-- Script will populate -->
-            </div>
-          </div>
-        </div>
-
-        <div class="controls card controls-row">
-          <div class="controls-left">
+          <div class="controls centered-controls">
             <button id="predictBtn" class="btn primary">Predict</button>
-            <button id="resetBtn" class="btn">Reset</button>
-          </div>
-
-          <div class="controls-right">
-            <label class="view-toggle">
-              <span>View:</span>
-              <select id="resultView">
+            <button id="resetBtn" class="btn" data-reset="true">Reset</button>
+            <label class="view-label">View
+              <select id="resultView" class="view-select">
                 <option value="list">List</option>
                 <option value="table">Table/Grid</option>
                 <option value="pie">Pie chart</option>
               </select>
             </label>
-            <label class="compact-toggle">
-              <input type="checkbox" id="compactMode" />
-              Compact
-            </label>
           </div>
         </div>
 
         <div id="results" class="card results">
-          <div class="results-header">
-            <h2>Predictions</h2>
-            <div class="results-actions">
-              <button id="exportBtn" class="btn">Export</button>
-            </div>
-          </div>
-
-          <div id="resultsList" class="results-list" hidden></div>
+          <h2>Predictions</h2>
+          <div id="resultsList" class="results-list"></div>
           <div id="resultsTable" class="results-table" hidden></div>
-          <div id="resultsPie" class="results-pie" hidden>
-            <canvas id="pieChartCanvas" width="400" height="400"></canvas>
-          </div>
+          <div id="resultsPie" class="results-pie" hidden></div>
         </div>
       </section>
 
+      <!-- Right: Key / Legend + Pie chart below -->
       <aside class="col col-right">
         <div class="card legend">
           <h2>Key / Legend</h2>
           <ul class="legend-list">
-            <li><span class="legend-swatch" style="background:#222"></span> Dominant</li>
-            <li><span class="legend-swatch" style="background:#666"></span> Recessive</li>
-            <li><span class="legend-swatch" style="background:#aaa"></span> Modifier</li>
+            <li><span class="legend-swatch" style="background:#4fc3f7"></span> Dominant</li>
+            <li><span class="legend-swatch" style="background:#9aa0a6"></span> Recessive</li>
+            <li><span class="legend-swatch" style="background:#666"></span> Modifier</li>
           </ul>
 
           <h3>Genes (order)</h3>
           <ol class="gene-list">
-            <li>K Locus — Kᴮ, kʸ</li>
-            <li>Extension — E, Eᵐ, e</li>
-            <li>Agouti — aʷ, aʸ, aᵗ, a</li>
+            <li>K Locus — K<sup>B</sup>, k<sup>y</sup></li>
+            <li>Extension — E, E<sup>m</sup>, e</li>
+            <li>Agouti — a<sup>w</sup>, a<sup>y</sup>, a<sup>t</sup>, a</li>
             <li>B Locus — B, b</li>
             <li>D Locus — D, d</li>
             <li>G Locus — G, g</li>
             <li>I Locus — I, i</li>
-            <li>S Locus — S, sᵖ</li>
+            <li>S Locus — S, s<sup>p</sup></li>
             <li>T Locus — T, t</li>
           </ol>
+        </div>
+
+        <div class="card pie-card">
+          <h3>Pie chart</h3>
+          <canvas id="pieChartCanvas" width="300" height="300"></canvas>
         </div>
       </aside>
     </section>
@@ -121,6 +218,5 @@
   </main>
 
   <script src="script.js"></script>
-  <!-- Include chart.js later in script.js or via CDN when enabling pie chart -->
 </body>
 </html>
