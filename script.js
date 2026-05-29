@@ -1,229 +1,313 @@
-/* script.js
- Loads data.json via fetch then initializes the app.
-*/
+// script.js
+// Assumes data.json is at the same root and structured as before.
 
-(async () => {
-  // load data.json
-  let data;
-  try {
-    const resp = await fetch('data.json', {cache: 'no-store'});
-    if (!resp.ok) throw new Error('Failed to load data.json: ' + resp.status);
-    data = await resp.json();
-  } catch (err) {
-    document.body.innerHTML = '<pre style="color:#f88;padding:16px">Error loading data.json: '+err.message+'</pre>';
-    console.error(err);
+const DATA_URL = './data.json';
+let data = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadData();
+  buildUI();
+  wireButtons();
+});
+
+async function loadData(){
+  const res = await fetch(DATA_URL);
+  data = await res.json();
+}
+
+function buildUI(){
+  // populate selects for each locus
+  const loci = ['E','K','A','B','D'];
+  loci.forEach(locus => {
+    const alleles = data.loci[locus].alleles;
+    const s1 = document.getElementById(`${locus}1`);
+    const s2 = document.getElementById(`${locus}2`);
+    fillSelect(s1, alleles);
+    fillSelect(s2, alleles);
+  });
+
+  buildLegend();
+  wireHelpButtons();
+  // set defaults if present in data
+  if (data.defaults){
+    Object.entries(data.defaults).forEach(([k,v])=>{
+      const el = document.getElementById(k);
+      if (el) el.value = v;
+    });
+  }
+}
+
+function fillSelect(select, alleles){
+  select.innerHTML = '';
+  alleles.forEach(a=>{
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${a.id} — ${a.name}`;
+    select.appendChild(opt);
+  });
+}
+
+function buildLegend(){
+  const table = document.getElementById('legend-table');
+  table.innerHTML = '<tr><th>Allele</th><th>Meaning</th><th>Mode</th></tr>';
+  Object.keys(data.loci).forEach(locus=>{
+    data.loci[locus].alleles.forEach(a=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${a.id}</strong></td><td>${a.name}</td><td>${a.mode || ''}</td>`;
+      table.appendChild(tr);
+    });
+  });
+}
+
+function wireHelpButtons(){
+  const pop = document.getElementById('popover');
+  document.querySelectorAll('.help').forEach(btn=>{
+    btn.addEventListener('mouseenter', e=>showPopover(e.currentTarget));
+    btn.addEventListener('focus', e=>showPopover(e.currentTarget));
+    btn.addEventListener('mouseleave', hidePopover);
+    btn.addEventListener('blur', hidePopover);
+    btn.addEventListener('click', e=>{
+      // toggle on click for touch users
+      if (pop.style.display === 'block') hidePopover();
+      else showPopover(e.currentTarget);
+    });
+  });
+}
+
+function showPopover(btn){
+  const locus = btn.getAttribute('data-locus');
+  const pop = document.getElementById('popover');
+  const info = data.loci[locus].short || data.loci[locus].description || 'No info';
+  pop.textContent = info;
+  const rect = btn.getBoundingClientRect();
+  pop.style.left = `${rect.right + 10}px`;
+  pop.style.top = `${rect.top}px`;
+  pop.style.display = 'block';
+  pop.setAttribute('aria-hidden','false');
+}
+
+function hidePopover(){
+  const pop = document.getElementById('popover');
+  pop.style.display = 'none';
+  pop.setAttribute('aria-hidden','true');
+}
+
+function wireButtons(){
+  document.getElementById('predict-btn').addEventListener('click', predictHandler);
+  document.getElementById('reset-btn').addEventListener('click', resetHandler);
+}
+
+function resetHandler(){
+  const form = document.getElementById('loci-form');
+  form.reset();
+  // reapply any data.defaults if present
+  if (data.defaults){
+    Object.entries(data.defaults).forEach(([k,v])=>{
+      const el = document.getElementById(k);
+      if (el) el.value = v;
+    });
+  }
+  clearResults();
+}
+
+function clearResults(){
+  document.getElementById('results').innerHTML = '';
+  const ctx = document.getElementById('pie').getContext('2d');
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+}
+
+function predictHandler(){
+  const parents = readForm();
+  const punnett = computePunnett(parents);
+  const phenos = resolvePhenotypes(punnett);
+  renderResults(phenos);
+  drawPie(phenos);
+}
+
+/* read current form selections into object */
+function readForm(){
+  const loci = ['E','K','A','B','D'];
+  const out = {};
+  loci.forEach(locus=>{
+    out[locus] = [
+      document.getElementById(`${locus}1`).value,
+      document.getElementById(`${locus}2`).value
+    ];
+  });
+  return out;
+}
+
+/* compute simple Mendelian 2x2 cross for each locus returning genotype distribution */
+function computePunnett(parents){
+  // For each locus, get gametes from parent alleles (both parents are represented by the two selects).
+  // We assume the form shows one individual's genotype (two alleles) and we cross two identical parents for simplicity.
+  // If you previously used different assumption, adjust here. We will cross the same genotype with itself (self-cross).
+  const out = {};
+  for (const locus in parents){
+    const [a,b] = parents[locus];
+    const gametes = [[a],[b]]; // parent gametes
+    const combos = {};
+    for (const g1 of gametes){
+      for (const g2 of gametes){
+        const pair = [g1[0], g2[0]].sort().join('/');
+        combos[pair] = (combos[pair] || 0) + 1;
+      }
+    }
+    // normalize to probabilities
+    const total = Object.values(combos).reduce((s,v)=>s+v,0);
+    Object.entries(combos).forEach(([k,v])=>{
+      combos[k] = v/total;
+    });
+    out[locus] = combos;
+  }
+  return out;
+}
+
+/* Resolve phenotype probabilities combining locus effects.
+   This function uses the same rule hierarchy you had:
+   - E: ee overrides masking (if ee then yellow regardless of K/A)
+   - K: Kb dominant black etc (use data.assumptions for priority)
+   - A: AY > AW > at > a, with at/aa treated recessive
+   - B, D: bb and dd affect eumelanin color and dilution
+*/
+function resolvePhenotypes(punnett){
+  // We'll generate all genotype combinations by multiplying probabilities across loci.
+  const loci = Object.keys(punnett);
+  // convert locus genotype maps to arrays
+  const locusOptions = loci.map(locus => {
+    return Object.entries(punnett[locus]).map(([geno,prob])=>({locus,geno,prob}));
+  });
+
+  // cartesian product
+  const combos = cartesian(locusOptions);
+  const phenotypeMap = {};
+
+  combos.forEach(combo => {
+    const p = combo.reduce((s,x)=>s * x.prob, 1);
+    const geno = {};
+    combo.forEach(c=>{
+      geno[c.locus] = c.geno; // like "AY/at"
+    });
+
+    const pheno = determinePhenotypeFromGenotype(geno);
+    phenotypeMap[pheno] = (phenotypeMap[pheno] || 0) + p;
+  });
+
+  // round small float jitter and sort
+  Object.keys(phenotypeMap).forEach(k=>{
+    phenotypeMap[k] = Math.round(phenotypeMap[k]*1000)/1000;
+  });
+
+  // remove zeroes and sort descending
+  const items = Object.entries(phenotypeMap).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  return items.map(([name,prob])=>({name,prob}));
+}
+
+function cartesian(arrays){
+  return arrays.reduce((acc,cur)=>{
+    const out = [];
+    acc.forEach(a=>{
+      cur.forEach(c=>{
+        out.push(a.concat([c]));
+      });
+    });
+    return out;
+  }, [[]]);
+}
+
+/* determine phenotype name from genotype object.
+   This uses data.assumptions and locus allele ids to decide.
+*/
+function determinePhenotypeFromGenotype(geno){
+  // E locus: if either genotype is "e/e" or an ee genotype present -> recessive yellow
+  const Egeno = geno['E'] || '';
+  const isEE = Egeno.split('/').every(x => x.toLowerCase() === 'ee' || x.toLowerCase().includes('e'));
+  if (isEE || Egeno.toLowerCase().includes('ee')) {
+    return 'Yellow (ee)';
+  }
+
+  // K locus preference (data.assumptions.kPriority is expected like ['Kb','kbr','ky'])
+  const Kgeno = geno['K'] || '';
+  const Kalleles = Kgeno.split('/');
+  const kPriority = data.assumptions?.kPriority || [];
+  for (const k of kPriority){
+    if (Kalleles.includes(k)) return `K:${k}`; // shorthand label
+  }
+
+  // A locus: evaluate AY > AW > at > a
+  const Ageno = geno['A'] || '';
+  const Aalleles = Ageno.split('/');
+  const aOrder = data.assumptions?.aPriority || [];
+  for (const a of aOrder){
+    if (Aalleles.includes(a)) return `A:${a}`;
+  }
+
+  // B and D modifiers appended
+  const Bgeno = geno['B'] || '';
+  const Dgeno = geno['D'] || '';
+  const bIsBB = !Bgeno.includes('bb') && !Bgeno.toLowerCase().includes('bb');
+  const dDilute = Dgeno.toLowerCase().includes('dd');
+
+  let base = 'Default';
+  // combine into a readable name
+  let modifiers = [];
+  if (Bgeno.includes('bb') || Bgeno.toLowerCase().includes('bb')) modifiers.push('brown (bb)');
+  if (dDilute) modifiers.push('dilute (dd)');
+
+  if (modifiers.length) base += ' — ' + modifiers.join(', ');
+  return base;
+}
+
+function renderResults(phenos){
+  const div = document.getElementById('results');
+  if (!phenos.length){
+    div.textContent = 'No results';
     return;
   }
+  div.innerHTML = '';
+  const ul = document.createElement('ul');
+  phenos.forEach(p=>{
+    const li = document.createElement('li');
+    li.textContent = `${p.name}: ${(p.prob*100).toFixed(1)}%`;
+    ul.appendChild(li);
+  });
+  div.appendChild(ul);
+}
 
-  // --- begin original code, using `data` variable ---
-  const lociOrder = ['K','E','A','B','D'];
-  const alleleOptions = {
-    K: ['Kb/Kb','Kb/ky','ky/ky'],
-    E: ['E/E','E/e','e/e'],
-    A: ['AY/AY','AY/AW','AW/AW','at/at','a/a','AW/at','AY/at','AY/a','AW/a','at/a'],
-    B: ['B/B','B/b','b/b'],
-    D: ['D/D','D/d','d/d']
-  };
+function drawPie(phenos){
+  const canvas = document.getElementById('pie');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const total = phenos.reduce((s,p)=>s+p.prob,0);
+  let start = -0.5 * Math.PI;
+  const cx = canvas.width/2;
+  const cy = canvas.height/2;
+  const radius = Math.min(cx,cy) - 10;
 
-  function populateSelect(id, locus){
-    const sel = document.getElementById(id);
-    sel.innerHTML = '';
-    alleleOptions[locus].forEach(opt => {
-      const o=document.createElement('option');
-      o.value=opt;
-      o.textContent=opt.replace('/',' / ');
-      sel.appendChild(o);
-    });
-  }
+  phenos.forEach((p, i) => {
+    const slice = (p.prob/total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,radius,start,start+slice);
+    start += slice;
+    ctx.closePath();
+    ctx.fillStyle = colorForIndex(i);
+    ctx.fill();
+  });
 
-  populateSelect('A_K','K'); populateSelect('B_K','K');
-  populateSelect('A_E','E'); populateSelect('B_E','E');
-  populateSelect('A_A','A'); populateSelect('B_A','A');
-  populateSelect('A_B','B'); populateSelect('B_B','B');
-  populateSelect('A_D','D'); populateSelect('B_D','D');
+  // legend small
+  ctx.font = '12px Inter, sans-serif';
+  let y = 12;
+  phenos.forEach((p,i)=>{
+    ctx.fillStyle = colorForIndex(i);
+    ctx.fillRect(8,y-10,10,10);
+    ctx.fillStyle = '#dfeef6';
+    ctx.fillText(`${p.name} ${(p.prob*100).toFixed(1)}%`, 26, y);
+    y += 18;
+  });
+}
 
-  function setDefaults(){
-    document.getElementById('A_K').value='Kb/ky';
-    document.getElementById('B_K').value='ky/ky';
-    document.getElementById('A_E').value='E/e';
-    document.getElementById('B_E').value='E/e';
-    document.getElementById('A_A').value='AW/at';
-    document.getElementById('B_A').value='AW/at';
-    document.getElementById('A_B').value='B/b';
-    document.getElementById('B_B').value='B/b';
-    document.getElementById('A_D').value='D/d';
-    document.getElementById('B_D').value='D/d';
-  }
-  setDefaults();
-
-  function randomFill(){
-    for(const p of ['A','B']){
-      for(const locus of lociOrder){
-        const sel = document.getElementById(`${p}_${locus}`);
-        const opts = alleleOptions[locus];
-        sel.value = opts[Math.floor(Math.random()*opts.length)];
-      }
-    }
-  }
-
-  function parsePair(s){
-    return s.split('/').map(x=>x.trim());
-  }
-
-  function gametes(pair){
-    const [a,b]=pair;
-    if(a===b) return {[a]:1};
-    return {[a]:0.5,[b]:0.5};
-  }
-
-  function crossGametes(g1,g2){
-    const out = {};
-    for(const a in g1){
-      for(const b in g2){
-        const prob = g1[a]*g2[b];
-        const parts = [a,b].sort();
-        const k2 = `${parts[0]}/${parts[1]}`;
-        out[k2] = (out[k2]||0)+prob;
-      }
-    }
-    return out;
-  }
-
-  function combineLoci(distMap){
-    let combined = {'':1};
-    for(const locus of lociOrder){
-      const locusMap = distMap[locus];
-      const next = {};
-      for(const base in combined){
-        for(const g in locusMap){
-          const p = combined[base]*locusMap[g];
-          const key = base ? (base + ' | ' + locus + ':' + g) : (locus + ':' + g);
-          next[key] = (next[key]||0) + p;
-        }
-      }
-      combined = next;
-    }
-    return combined;
-  }
-
-  function phenotypeFromFull(entry){
-    const parts = entry.split(' | ').map(p=>p.trim());
-    const map = {};
-    parts.forEach(part=>{
-      const [l,g]=part.split(':');
-      map[l]=g;
-    });
-    function isHomo(locus,allele){
-      const g = parsePair(map[locus]);
-      return g[0]===allele && g[1]===allele;
-    }
-    function hasAllele(locus,allele){
-      const g = parsePair(map[locus]);
-      return g[0]===allele || g[1]===allele;
-    }
-    if(isHomo('E','e')){
-      return {phen:'Recessive yellow (ee)', short:'ee; yellow', note:'ee overrides eumelanin'};
-    }
-    if(hasAllele('K','Kb')){
-      const brown = isHomo('B','b');
-      const dilute = isHomo('D','d');
-      let color = brown ? 'brown' : 'black';
-      if(dilute) color = brown ? 'lilac (diluted brown)' : 'blue (diluted black)';
-      return {phen:`Dominant black (${color})`, short:`Kb present; ${brown?'bb':''} ${dilute?'dd':''}`};
-    }
-    if(isHomo('A','AY') || hasAllele('A','AY')){
-      return {phen:'Dominant yellow (AY)', short:'AY present'};
-    }
-    if(hasAllele('A','AW') && !hasAllele('A','at') && !hasAllele('A','a')){
-      const brown = isHomo('B','b');
-      const dilute = isHomo('D','d');
-      let base = 'agouti';
-      let color = brown ? 'brown agouti' : 'agouti (black/tan shading)';
-      if(dilute) color += ' (diluted)';
-      return {phen:base + ' — ' + color, short:`A:AW; ${brown?'bb':''} ${dilute?'dd':''}`};
-    }
-    if(isHomo('A','at')){
-      const brown = isHomo('B','b');
-      const dilute = isHomo('D','d');
-      let color = brown ? 'brown and tan' : 'black and tan';
-      if(dilute) color += ' (diluted)';
-      return {phen:'Black and tan (at/at) — ' + color, short:'at/at'};
-    }
-    if(isHomo('A','a')){
-      const brown = isHomo('B','b');
-      const dilute = isHomo('D','d');
-      let color = brown ? 'brown (recessive black modified)' : 'recessive black';
-      if(dilute) color += ' (diluted)';
-      return {phen:'Recessive black (aa) — ' + color, short:'aa'};
-    }
-    const brown = isHomo('B','b');
-    const dilute = isHomo('D','d');
-    let color = brown ? 'brown agouti' : 'agouti/wild-type';
-    if(dilute) color += ' (diluted)';
-    return {phen:color, short:'default agouti/wild-type'};
-  }
-
-  function computeDistribution(){
-    const locusDist = {};
-    for(const locus of lociOrder){
-      const pA = parsePair(document.getElementById('A_'+locus).value);
-      const pB = parsePair(document.getElementById('B_'+locus).value);
-      const g1 = gametes(pA);
-      const g2 = gametes(pB);
-      const cross = crossGametes(g1,g2);
-      locusDist[locus] = cross;
-    }
-    const combined = combineLoci(locusDist);
-    return combined;
-  }
-
-  function renderResults(){
-    const out = document.getElementById('results');
-    out.innerHTML = '<div class="small">Calculating...</div>';
-    const combined = computeDistribution();
-    const phenMap = {};
-    for(const entry in combined){
-      const prob = combined[entry];
-      const ph = phenotypeFromFull(entry);
-      const key = ph.phen;
-      if(!phenMap[key]) phenMap[key]={prob:0, examples:[], note:ph.note||''};
-      phenMap[key].prob += prob;
-      if(phenMap[key].examples.length<3) phenMap[key].examples.push({gen:entry, short:ph.short});
-    }
-    const rows = Object.entries(phenMap).sort((a,b)=>b[1].prob - a[1].prob);
-    if(rows.length===0){ out.innerHTML='<div class="small">No results</div>'; return; }
-    out.innerHTML = '';
-    rows.forEach(([phen,info])=>{
-      const pct = (info.prob*100).toFixed(1);
-      const div = document.createElement('div');
-      div.className='result-item';
-      div.innerHTML = `
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div>
-              <div class="swatch" aria-hidden="true"></div>
-            </div>
-            <div>
-              <div style="font-weight:600">${phen} — ${pct}%</div>
-              <div class="genos">${info.examples.map(e=>e.short).join(' ; ')}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      out.appendChild(div);
-    });
-    const total = Object.values(combined).reduce((s,v)=>s+v,0);
-    const check = document.createElement('div');
-    check.className='small';
-    check.style.marginTop='8px';
-    check.textContent = `Total genotype probability: ${total.toFixed(4)} (should be 1.0000)`;
-    out.appendChild(check);
-  }
-
-  document.getElementById('predictBtn').addEventListener('click', renderResults);
-  document.getElementById('randomBtn').addEventListener('click', ()=>{ randomFill(); });
-  document.getElementById('resetBtn').addEventListener('click', setDefaults);
-
-  renderResults();
-  // --- end original code ---
-})();
+function colorForIndex(i){
+  const palette = ['#7c9eff','#4fd1c5','#ffb86b','#ff7b7b','#a3f3a3','#caa6ff','#ffd6e0'];
+  return palette[i % palette.length];
+}
