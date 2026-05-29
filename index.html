@@ -1,256 +1,80 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Yakutian Laika — Puppy Colour Predictor</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Yakutian Laika — Puppy Colour Predictor</h1>
+  <main class="container">
+    <header>
+      <h1>Yakutian Laika — Puppy Colour Predictor</h1>
+    </header>
 
-    <div class="layout">
-      <!-- Left: Quick Guide -->
-      <aside class="col col-left">
-        <div class="card guide">
-          <h2 class="small">Quick Guide</h2>
-          <ol>
-            <li>Select alleles for <strong>Sire</strong> and <strong>Dam</strong>.</li>
-            <li>Click <strong>Predict</strong> to compute offspring genotype & phenotype probabilities.</li>
-            <li>Switch results view: List, Table, or Pie chart.</li>
-            <li>Use Reset to restore default genotype selections.</li>
-          </ol>
-        </div>
-      </aside>
-
-      <!-- Center: Parents -->
-      <main class="col col-center">
-        <div class="parents">
-          <section class="parent" id="sire">
-            <h3>Sire</h3>
-
-            <div class="locus-row">
-              <label>K Locus <button class="hint" data-hint="K locus controls dominant black vs recessive red/sable">?</button></label>
-              <select><option>Kᴮ</option><option>kʸ</option></select>
-              <select><option>Kᴮ</option><option>kʸ</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>Extension <button class="hint" data-hint="Extension (E) controls ability to produce red/yellow">?</button></label>
-              <select><option>E</option><option>Eᵐ</option><option>e</option></select>
-              <select><option>E</option><option>Eᵐ</option><option>e</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>Agouti <button class="hint" data-hint="Agouti determines banding/sable/tan-point pattern">?</button></label>
-              <div style="display:flex;gap:8px;width:100%">
-                <select style="flex:1"><option>aʸ</option><option>aʷ</option><option>aᵗ</option><option>a</option></select>
-                <select style="flex:1"><option>aʸ</option><option>aʷ</option><option>aᵗ</option><option>a</option></select>
-              </div>
-            </div>
-
-            <div class="locus-row">
-              <label>B Locus <button class="hint" data-hint="B locus controls liver vs non-liver (brown)">?</button></label>
-              <select><option>B</option><option>b</option></select>
-              <select><option>B</option><option>b</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>D Locus <button class="hint" data-hint="D locus controls dilution (blue) vs non-dilute">?</button></label>
-              <select><option>D</option><option>d</option></select>
-              <select><option>D</option><option>d</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>G Locus <button class="hint" data-hint="G locus causes greying with age">?</button></label>
-              <select><option>G</option><option>g</option></select>
-              <select><option>G</option><option>g</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>I Locus <button class="hint" data-hint="I locus affects intensity (pigment intensity)">?</button></label>
-              <select><option>I</option><option>i</option></select>
-              <select><option>I</option><option>i</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>S Locus <button class="hint" data-hint="S locus: white spotting / piebald">?</button></label>
-              <select><option>S</option><option>sᵖ</option></select>
-              <select><option>S</option><option>sᵖ</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>T Locus <button class="hint" data-hint="T locus controls ticking">?</button></label>
-              <select><option>T</option><option>t</option></select>
-              <select><option>T</option><option>t</option></select>
-            </div>
-          </section>
-
-          <section class="parent" id="dam">
-            <h3>Dam</h3>
-
-            <div class="locus-row">
-              <label>K Locus <button class="hint" data-hint="K locus controls dominant black vs recessive red/sable">?</button></label>
-              <select><option>Kᴮ</option><option>kʸ</option></select>
-              <select><option>Kᴮ</option><option>kʸ</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>Extension <button class="hint" data-hint="Extension (E) controls ability to produce red/yellow">?</button></label>
-              <select><option>E</option><option>Eᵐ</option><option>e</option></select>
-              <select><option>E</option><option>Eᵐ</option><option>e</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>Agouti <button class="hint" data-hint="Agouti determines banding/sable/tan-point pattern">?</button></label>
-              <div style="display:flex;gap:8px;width:100%">
-                <select style="flex:1"><option>aʸ</option><option>aʷ</option><option>aᵗ</option><option>a</option></select>
-                <select style="flex:1"><option>aʸ</option><option>aʷ</option><option>aᵗ</option><option>a</option></select>
-              </div>
-            </div>
-
-            <div class="locus-row">
-              <label>B Locus <button class="hint" data-hint="B locus controls liver vs non-liver (brown)">?</button></label>
-              <select><option>B</option><option>b</option></select>
-              <select><option>B</option><option>b</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>D Locus <button class="hint" data-hint="D locus controls dilution (blue) vs non-dilute">?</button></label>
-              <select><option>D</option><option>d</option></select>
-              <select><option>D</option><option>d</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>G Locus <button class="hint" data-hint="G locus causes greying with age">?</button></label>
-              <select><option>G</option><option>g</option></select>
-              <select><option>G</option><option>g</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>I Locus <button class="hint" data-hint="I locus affects intensity (pigment intensity)">?</button></label>
-              <select><option>I</option><option>i</option></select>
-              <select><option>I</option><option>i</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>S Locus <button class="hint" data-hint="S locus: white spotting / piebald">?</button></label>
-              <select><option>S</option><option>sᵖ</option></select>
-              <select><option>S</option><option>sᵖ</option></select>
-            </div>
-
-            <div class="locus-row">
-              <label>T Locus <button class="hint" data-hint="T locus controls ticking">?</button></label>
-              <select><option>T</option><option>t</option></select>
-              <select><option>T</option><option>t</option></select>
-            </div>
-          </section>
-        </div>
-
-        <div class="controls">
-          <button id="predictBtn">Predict</button>
-          <button id="resetBtn">Reset</button>
-          <div class="small">View:
-            <select id="resultView"><option>List</option><option>Table</option><option>Pie</option></select>
-          </div>
-        </div>
-
-        <div class="results" id="results">
-          <h3>Predictions</h3>
-          <div class="result-item">
-            <div class="swatch"></div>
-            <div>
-              <div><strong>Black</strong></div>
-              <div class="genos">Kᴮkʸ E E aʸ a</div>
-            </div>
+    <section class="controls-grid">
+      <div class="loci-card">
+        <h2>Loci</h2>
+        <form id="loci-form">
+          <div class="locus-row">
+            <label for="E1">E Locus</label>
+            <select id="E1" name="E1"></select>
+            <select id="E2" name="E2"></select>
+            <button type="button" class="help" data-locus="E" aria-label="E locus help">?</button>
           </div>
 
-          <div class="result-item">
-            <div class="swatch" style="background:#8e6b3b"></div>
-            <div>
-              <div><strong>Brown</strong></div>
-              <div class="genos">kʸkʸ B b e e</div>
-            </div>
+          <div class="locus-row">
+            <label for="K1">K Locus</label>
+            <select id="K1" name="K1"></select>
+            <select id="K2" name="K2"></select>
+            <button type="button" class="help" data-locus="K" aria-label="K locus help">?</button>
           </div>
 
-        </div>
+          <div class="locus-row">
+            <label for="A1">A Locus</label>
+            <select id="A1" name="A1"></select>
+            <select id="A2" name="A2"></select>
+            <button type="button" class="help" data-locus="A" aria-label="A locus help">?</button>
+          </div>
 
-        <footer class="notes">
-          <small>May 27, 2026</small>
-        </footer>
-      </main>
+          <div class="locus-row">
+            <label for="B1">B Locus</label>
+            <select id="B1" name="B1"></select>
+            <select id="B2" name="B2"></select>
+            <button type="button" class="help" data-locus="B" aria-label="B locus help">?</button>
+          </div>
 
-      <!-- Right: Key / Legend + Pie chart below -->
-      <aside class="col col-right">
-        <div class="card legend">
-          <h2 class="small">Key / Legend</h2>
-          <table class="key-table">
-            <thead>
-              <tr><th>Gene</th><th>Meaning</th><th>Mode</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>aʸ</td><td>Agouti</td><td>Dominant<br><small>Needs 1 copy</small></td></tr>
-              <tr><td>aʷ</td><td>Sable</td><td>Dominant</td></tr>
-              <tr><td>aᵗ</td><td>Tan Points</td><td>Dominant</td></tr>
-              <tr><td>a</td><td>Recessive Black</td><td>Recessive<br><small>Needs 2 copies</small></td></tr>
+          <div class="locus-row">
+            <label for="D1">D Locus</label>
+            <select id="D1" name="D1"></select>
+            <select id="D2" name="D2"></select>
+            <button type="button" class="help" data-locus="D" aria-label="D locus help">?</button>
+          </div>
 
-              <tr><td>Kᴮ</td><td>Dominant Black</td><td>Dominant</td></tr>
-              <tr><td>kʸ</td><td>Recessive Black</td><td>Recessive</td></tr>
+          <div class="form-actions">
+            <button type="button" id="predict-btn">Predict</button>
+            <button type="button" id="reset-btn">Reset</button>
+          </div>
+        </form>
+      </div>
 
-              <tr><td>Eᵐ</td><td>Mask</td><td>Dominant</td></tr>
-              <tr><td>E</td><td>N/A</td><td>Dominant</td></tr>
-              <tr><td>e</td><td>Recessive Red</td><td>Recessive</td></tr>
+      <div class="legend-card">
+        <h2>Key / Legend</h2>
+        <table id="legend-table">
+          <!-- Populated by script -->
+        </table>
+      </div>
 
-              <tr><td>B</td><td>Non-Liver</td><td>Dominant</td></tr>
-              <tr><td>b</td><td>Liver</td><td>Recessive</td></tr>
+      <div class="results-card">
+        <h2>Results</h2>
+        <div id="results"></div>
+        <canvas id="pie" width="300" height="300" aria-label="Phenotype distribution chart"></canvas>
+      </div>
+    </section>
 
-              <tr><td>D</td><td>Non-Blue</td><td>Dominant</td></tr>
-              <tr><td>d</td><td>Blue</td><td>Recessive</td></tr>
+    <div id="popover" class="popover" role="dialog" aria-hidden="true"></div>
+  </main>
 
-              <tr><td>G</td><td>Greying</td><td>Dominant</td></tr>
-              <tr><td>g</td><td>Non-Greying</td><td>Recessive</td></tr>
-
-              <tr><td>I</td><td>Normal Intensity</td><td>Dominant</td></tr>
-              <tr><td>i</td><td>Low Intensity</td><td>Recessive</td></tr>
-
-              <tr><td>S</td><td>No White Markings</td><td>Dominant</td></tr>
-              <tr><td>sᵖ</td><td>Piebald</td><td>Dominant</td></tr>
-
-              <tr><td>T</td><td>Ticking</td><td>Dominant</td></tr>
-              <tr><td>t</td><td>Non-Ticking</td><td>Recessive</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card pie-card">
-          <h3 class="small">Pie chart</h3>
-          <canvas id="pieChartCanvas" width="260" height="260"></canvas>
-        </div>
-      </aside>
-    </div>
-  </div>
-
-  <script>
-    // small JS to show hint popouts on hover/focus
-    document.querySelectorAll('.hint').forEach(btn=>{
-      let tip;
-      btn.addEventListener('mouseenter',()=>showTip(btn));
-      btn.addEventListener('focus',()=>showTip(btn));
-      btn.addEventListener('mouseleave',()=>hideTip());
-      btn.addEventListener('blur',()=>hideTip());
-      function showTip(el){
-        hideTip();
-        tip = document.createElement('div');
-        tip.className = 'hint-tip';
-        tip.textContent = el.getAttribute('data-hint');
-        document.body.appendChild(tip);
-        const r = el.getBoundingClientRect();
-        tip.style.left = (r.right + 10) + 'px';
-        tip.style.top = (r.top) + 'px';
-      }
-      function hideTip(){ if(tip && tip.parentNode) tip.parentNode.removeChild(tip); tip = null; }
-    });
-  </script>
+  <script src="script.js" defer></script>
 </body>
 </html>
