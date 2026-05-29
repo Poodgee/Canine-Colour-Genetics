@@ -1,78 +1,62 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Yakutian Laika — Puppy Colour Predictor</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="container">
-    <header>
-      <h1>Yakutian Laika — Puppy Colour Predictor</h1>
-    </header>
+    <header><h1>Yakutian Laika — Puppy Colour Predictor</h1></header>
 
-    <section class="controls-grid">
-      <div class="loci-card">
-        <h2>Loci</h2>
-        <form id="loci-form">
-          <div class="locus-row">
-            <label for="E1">E Locus</label>
-            <select id="E1" name="E1"></select>
-            <select id="E2" name="E2"></select>
-            <button type="button" class="help" data-locus="E" aria-label="E locus help">?</button>
+    <section class="layout">
+      <aside class="quick-guide">
+        <h3>Quick Guide</h3>
+        <ol id="quick-list"></ol>
+      </aside>
+
+      <section class="cross-panel">
+        <div class="parents-grid">
+          <div class="parent-card">
+            <h3>Sire</h3>
+            <form data-parent="sire" class="locus-form">
+              <!-- loci inserted by script -->
+            </form>
           </div>
 
-          <div class="locus-row">
-            <label for="K1">K Locus</label>
-            <select id="K1" name="K1"></select>
-            <select id="K2" name="K2"></select>
-            <button type="button" class="help" data-locus="K" aria-label="K locus help">?</button>
+          <div class="parent-card">
+            <h3>Dam</h3>
+            <form data-parent="dam" class="locus-form">
+              <!-- loci inserted by script -->
+            </form>
           </div>
+        </div>
 
-          <div class="locus-row">
-            <label for="A1">A Locus</label>
-            <select id="A1" name="A1"></select>
-            <select id="A2" name="A2"></select>
-            <button type="button" class="help" data-locus="A" aria-label="A locus help">?</button>
-          </div>
+        <div class="actions">
+          <button id="predict-btn">Predict</button>
+          <button id="reset-btn">Reset</button>
+        </div>
 
-          <div class="locus-row">
-            <label for="B1">B Locus</label>
-            <select id="B1" name="B1"></select>
-            <select id="B2" name="B2"></select>
-            <button type="button" class="help" data-locus="B" aria-label="B locus help">?</button>
-          </div>
+        <section class="predictions">
+          <h3>Predictions</h3>
+          <div id="predictions-area"></div>
+        </section>
+      </section>
 
-          <div class="locus-row">
-            <label for="D1">D Locus</label>
-            <select id="D1" name="D1"></select>
-            <select id="D2" name="D2"></select>
-            <button type="button" class="help" data-locus="D" aria-label="D locus help">?</button>
-          </div>
+      <aside class="side-panel">
+        <div class="legend-card">
+          <h3>Key / Legend</h3>
+          <table id="legend-table"></table>
+        </div>
 
-          <div class="form-actions">
-            <button type="button" id="predict-btn">Predict</button>
-            <button type="button" id="reset-btn">Reset</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="legend-card">
-        <h2>Key / Legend</h2>
-        <table id="legend-table">
-          <!-- Populated by script -->
-        </table>
-      </div>
-
-      <div class="results-card">
-        <h2>Results</h2>
-        <div id="results"></div>
-        <canvas id="pie" width="300" height="300" aria-label="Phenotype distribution chart"></canvas>
-      </div>
+        <div class="pie-card">
+          <canvas id="pie" width="260" height="260" aria-label="Phenotype distribution"></canvas>
+        </div>
+      </aside>
     </section>
 
-    <div id="popover" class="popover" role="dialog" aria-hidden="true"></div>
+    <div id="popover" class="popover" aria-hidden="true"></div>
   </main>
 
   <script src="script.js" defer></script>
