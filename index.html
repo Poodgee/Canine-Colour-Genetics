@@ -1,4 +1,73 @@
 <!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Yakutian Laika — Puppy Colour Predictor</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Yakutian Laika — Puppy Colour Predictor</h1>
+    </header>
+
+    <div class="app-layout">
+      <!-- Left Column: Quick Guide -->
+      <aside class="glass-panel">
+        <h3>Quick Guide</h3>
+        <div id="quick-list" class="guide-content">
+          <!-- Populated by JS -->
+        </div>
+      </aside>
+
+      <!-- Middle Column: Parent Selection & Predictions -->
+      <section class="main-panel">
+        <div class="parents-container">
+          <div class="parent-box">
+            <h3>Sire</h3>
+            <form data-parent="sire" class="locus-form"></form>
+          </div>
+          <div class="parent-box">
+            <h3>Dam</h3>
+            <form data-parent="dam" class="locus-form"></form>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button id="predict-btn" class="btn-primary">Predict</button>
+          <button id="random-btn" class="btn-secondary">Random</button>
+          <button id="reset-btn" class="btn-secondary">Reset</button>
+        </div>
+
+        <div class="predictions-section">
+          <div class="pred-header">
+            <h3>Predictions</h3>
+            <span id="possibilities-count"></span>
+          </div>
+          <div id="predictions-area"></div>
+        </div>
+      </section>
+
+      <!-- Right Column: Key & Pie -->
+      <aside class="glass-panel">
+        <div class="legend-card">
+          <h3>Key / Legend</h3>
+          <table id="legend-table"></table>
+        </div>
+        <div class="pie-card">
+          <canvas id="pie" width="260" height="260"></canvas>
+        </div>
+      </aside>
+    </div>
+
+    <div id="popover" class="popover" aria-hidden="true"></div>
+  </main>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
