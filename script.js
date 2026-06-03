@@ -3,6 +3,7 @@ let data = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
+  buildGuide();
   buildParentsUI();
   buildLegend();
   wireButtons();
@@ -13,9 +14,16 @@ async function loadData() {
   try {
     const res = await fetch(DATA_URL);
     data = await res.json();
-  } catch (e) {
-    console.error("Data load failed", e);
-  }
+  } catch (e) { console.error("Data load failed", e); }
+}
+
+function buildGuide() {
+  const guide = document.getElementById('quick-list');
+  guide.innerHTML = `
+    <p><strong>For Experts:</strong> Select the alleles for both parents. The engine calculates the Punnett square for each locus and resolves phenotypes based on strict hierarchy.</p>
+    <p><strong>For Beginners:</strong> Use the <strong>?</strong> buttons to see what each gene does. Choose a combination for the Sire and Dam, then click <strong>Predict</strong> to see the possible puppy colours!</p>
+    <p><strong>Pro Tip:</strong> Use the <strong>Random</strong> button to explore how different gene combinations interact.</p>
+  `;
 }
 
 function buildParentsUI() {
@@ -27,7 +35,6 @@ function buildParentsUI() {
     keys.forEach(locus => {
       const row = document.createElement('div');
       row.className = 'locus-row';
-      
       const lbl = document.createElement('label');
       lbl.textContent = `${locus} Locus`;
       row.appendChild(lbl);
@@ -37,24 +44,16 @@ function buildParentsUI() {
       const s2 = document.createElement('select');
       s2.id = `${parent}-${locus}-a2`;
 
-      const alleles = data.loci[locus].alleles;
-      alleles.forEach(a => {
-        const o1 = new Option(a.id, a.id);
-        const o2 = new Option(a.id, a.id);
-        s1.add(o1);
-        s2.add(o2);
+      data.loci[locus].alleles.forEach(a => {
+        s1.add(new Option(a.id, a.id));
+        s2.add(new Option(a.id, a.id));
       });
 
-      row.appendChild(s1);
-      row.appendChild(s2);
-
+      row.appendChild(s1); row.appendChild(s2);
       const help = document.createElement('button');
-      help.type = 'button';
-      help.className = 'help';
-      help.setAttribute('data-locus', locus);
-      help.textContent = '?';
+      help.type = 'button'; help.className = 'help';
+      help.setAttribute('data-locus', locus); help.textContent = '?';
       row.appendChild(help);
-
       form.appendChild(row);
     });
   });
@@ -81,8 +80,7 @@ function wireButtons() {
 
 function randomHandler() {
   document.querySelectorAll('select').forEach(s => {
-    const options = s.options;
-    s.selectedIndex = Math.floor(Math.random() * options.length);
+    s.selectedIndex = Math.floor(Math.random() * s.options.length);
   });
   predictHandler();
 }
@@ -105,14 +103,8 @@ function predictHandler() {
 function readParents() {
   const parents = { sire: {}, dam: {} };
   Object.keys(data.loci).forEach(locus => {
-    parents.sire[locus] = [
-      document.getElementById(`sire-${locus}-a1`).value,
-      document.getElementById(`sire-${locus}-a2`).value
-    ];
-    parents.dam[locus] = [
-      document.getElementById(`dam-${locus}-a1`).value,
-      document.getElementById(`dam-${locus}-a2`).value
-    ];
+    parents.sire[locus] = [document.getElementById(`sire-${locus}-a1`).value, document.getElementById(`sire-${locus}-a2`).value];
+    parents.dam[locus] = [document.getElementById(`dam-${locus}-a1`).value, document.getElementById(`dam-${locus}-a2`).value];
   });
   return parents;
 }
@@ -120,9 +112,7 @@ function readParents() {
 function computePunnett(parents) {
   const out = {};
   Object.keys(parents.sire).forEach(locus => {
-    const s = parents.sire[locus];
-    const d = parents.dam[locus];
-    const combos = {};
+    const s = parents.sire[locus], d = parents.dam[locus], combos = {};
     s.forEach(sa => {
       d.forEach(da => {
         const pair = [sa, da].sort().join('');
@@ -150,38 +140,27 @@ function resolvePhenotypes(punnett) {
     map[key] = (map[key] || 0) + prob;
   });
 
-  return Object.entries(map)
-    .map(([k, v]) => {
-      const [name, genoStr] = k.split('||');
-      return { name, genoStr, prob: v };
-    })
-    .sort((a, b) => b.prob - a.prob);
+  return Object.entries(map).map(([k, v]) => {
+    const [name, genoStr] = k.split('||');
+    return { name, genoStr, prob: v };
+  }).sort((a, b) => b.prob - a.prob);
 }
 
 function determinePhenotype(geno) {
-  // 1. E Locus Master Override (ee = Recessive Yellow/Red)
-  if (geno['E'] === 'ee') {
-    return { name: 'Recessive Yellow/Red', genoStr: formatGeno(geno) };
-  }
+  if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', genoStr: formatGeno(geno) };
 
-  // 2. Pigment Base (B and D)
   const isLiver = geno['B'] === 'bb';
   const isBlue = geno['D'] === 'dd';
   const isIsabella = isLiver && isBlue;
-
-  // 3. K Locus Masking
-  const hasKB = geno['K'].includes('Kb');
-  const hasKy = geno['K'] === 'kyky';
-  
-  // 4. A Locus Priority (ay > aw > at > a)
+  const hasKB = geno['K'].includes('KB');
   const aGeno = geno['A'];
+  
   let aColor = 'Recessive Black';
-  if (aGeno.includes('AY')) aColor = 'Sable/Fawn';
-  else if (aGeno.includes('AW')) aColor = 'Wolf Grey';
+  if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
+  else if (aGeno.includes('aw')) aColor = 'Wolf Grey';
   else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
   else if (aGeno === 'aa') aColor = 'Recessive Black';
 
-  // 5. Final Name Assembly
   let name = '';
   if (isIsabella) name = 'Isabella';
   else if (hasKB) {
@@ -194,21 +173,16 @@ function determinePhenotype(geno) {
     if (isBlue) name = `Blue ${name}`;
   }
 
-  // 6. Em Masking
-  if (geno['E'].includes('Em') && (aGeno.includes('AY') || aGeno.includes('AW') || aGeno.includes('at'))) {
+  if (geno['E'].includes('Em') && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
     name += ' (with Mask)';
   }
-
-  // 7. Intensive White
-  if (geno['S'] === 'spsp') {
-    name += ' (Intensive White)';
-  }
+  if (geno['S'] === 'spsp') name += ' (Intensive White)';
 
   return { name, genoStr: formatGeno(geno) };
 }
 
 function formatGeno(geno) {
-  return Object.entries(geno).map(([l, g]) => `${l}:${g}`).join(' ');
+  return Object.entries(geno).map(([l, g]) => g).join(' ');
 }
 
 function renderPredictions(items) {
@@ -239,24 +213,48 @@ function cartesian(arr) {
 function drawPie(items) {
   const canvas = document.getElementById('pie');
   const ctx = canvas.getContext('2d');
+  const tooltip = document.getElementById('pie-tooltip');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
   let start = -0.5 * Math.PI;
-  const cx = canvas.width / 2, cy = canvas.height / 2, r = 100;
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = 120;
+  const slices = [];
 
   items.forEach((it, i) => {
-    const slice = it.prob * Math.PI * 2;
+    const sliceAngle = it.prob * Math.PI * 2;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, start + slice);
+    ctx.arc(cx, cy, r, start, start + sliceAngle);
     ctx.fillStyle = `hsl(${i * 137.5}, 70%, 60%)`;
     ctx.fill();
-    start += slice;
+    slices.push({ start, end: start + sliceAngle, name: it.name, prob: it.prob });
+    start += sliceAngle;
   });
+
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - cx;
+    const y = e.clientY - rect.top - cy;
+    const angle = Math.atan2(y, x);
+    const normalizedAngle = angle < -0.5 * Math.PI ? angle + 2 * Math.PI : angle;
+
+    const found = slices.find(s => normalizedAngle >= s.start && normalizedAngle <= s.end);
+    if (found) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = `${e.clientX - rect.left + 10}px`;
+      tooltip.style.top = `${e.clientY - rect.top + 10}px`;
+      tooltip.textContent = `${found.name} (${(found.prob * 100).toFixed(1)}%)`;
+    } else {
+      tooltip.style.display = 'none';
+    }
+  };
+  canvas.onmouseleave = () => tooltip.style.display = 'none';
 }
 
 function clearPie() {
   const canvas = document.getElementById('pie');
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('pie-tooltip').style.display = 'none';
 }
 
 function wireHelp() {
