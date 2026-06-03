@@ -64,4 +64,37 @@ button { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: point
   padding-right: 10px;
 }
 /* Custom Scrollbar for a cleaner look */
-#predictions-area::-webkit-scrollbar { width:
+#predictions-area::-webkit-scrollbar { width: 6px; }
+#predictions-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+#predictions-area::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
+.prediction-item {
+  padding: 15px; margin-bottom: 12px;
+  background: rgba(15, 23, 42, 0.4); border-radius: 10px;
+  border-left: 4px solid var(--accent);
+}
+.prediction-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 5px; }
+.prediction-genotype { font-family: monospace; color: var(--text-muted); font-size: 0.9rem; }
+
+#legend-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+#legend-table td, #legend-table th { padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+#legend-table th { color: var(--accent); }
+
+.pie-card { position: relative; display: flex; justify-content: center; }
+.pie-tooltip {
+  position: absolute; background: rgba(0,0,0,0.8); color: white;
+  padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;
+  pointer-events: none; display: none; z-index: 10;
+  white-space: nowrap; border: 1px solid var(--accent);
+}
+
+.popover {
+  position: fixed; background: #1e293b; color: white;
+  padding: 10px; border-radius: 8px; display: none;
+  z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--accent);
+}
+
+@media (max-width: 1100px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .parents-container { grid-template-columns: 1fr; }
+}
