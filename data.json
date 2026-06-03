@@ -12,7 +12,7 @@
       "name": "E (extension)",
       "description": "ee = recessive yellow/red.",
       "alleles": [
-        { "id": "Em", "name": "Melanistic", "mode": "Dominant" },
+        { "id": "Em", "name": "Mask", "mode": "Dominant" },
         { "id": "E", "name": "Normal", "mode": "Dominant" },
         { "id": "e", "name": "Recessive Yellow", "mode": "Recessive" }
       ]
@@ -22,7 +22,7 @@
       "description": "Order: ay > aw > at > a.",
       "alleles": [
         { "id": "ay", "name": "Sable/Fawn", "mode": "Dominant" },
-        { "id": "aw", "name": "Wolf Grey", "mode": "Dominant" },
+        { "id": "aw", "name": "Wild Type", "mode": "Dominant" },
         { "id": "at", "name": "Tan Points", "mode": "Dominant" },
         { "id": "a", "name": "Recessive Black", "mode": "Recessive" }
       ]
@@ -31,7 +31,7 @@
       "name": "B (brown)",
       "description": "bb converts black to brown (Liver).",
       "alleles": [
-        { "id": "B", "name": "Black", "mode": "Dominant" },
+        { "id": "B", "name": "Non-Dilute", "mode": "Dominant" },
         { "id": "b", "name": "Brown", "mode": "Recessive" }
       ]
     },
@@ -39,8 +39,8 @@
       "name": "D (dilution)",
       "description": "dd dilutes colours (Blue/Lilac).",
       "alleles": [
-        { "id": "D", "name": "Full Color", "mode": "Dominant" },
-        { "id": "d", "name": "Diluted", "mode": "Recessive" }
+        { "id": "D", "name": "Non-Dilute", "mode": "Dominant" },
+        { "id": "d", "name": "Dilute or Blue", "mode": "Recessive" }
       ]
     },
     "S": {
@@ -48,7 +48,7 @@
       "description": "spsp results in intensive white.",
       "alleles": [
         { "id": "S", "name": "Normal", "mode": "Dominant" },
-        { "id": "sp", "name": "Intensive White", "mode": "Recessive" }
+        { "id": "sp", "name": "piebald", "mode": "Recessive" }
       ]
     }
   }
