@@ -157,7 +157,7 @@ function determinePhenotype(geno) {
   
   let aColor = 'Recessive Black';
   if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
-  else if (aGeno.includes('aw')) aColor = 'Wolf Grey';
+  else if (aGeno.includes('aw')) aColor = 'Wild Type';
   else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
   else if (aGeno === 'aa') aColor = 'Recessive Black';
 
@@ -176,7 +176,14 @@ function determinePhenotype(geno) {
   if (geno['E'].includes('Em') && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
     name += ' (with Mask)';
   }
-  if (geno['S'] === 'spsp') name += ' (Intensive White)';
+
+  // Updated S Locus naming
+  const sGeno = geno['S'];
+  if (sGeno === 'spsp') {
+    name = `Intensive White & ${name}`;
+  } else if (sGeno === 'Ssp') {
+    name = `White & ${name}`;
+  }
 
   return { name, genoStr: formatGeno(geno) };
 }
@@ -210,6 +217,19 @@ function cartesian(arr) {
   }, [[]]);
 }
 
+function getPhenoColor(name, index) {
+  const lower = name.toLowerCase();
+  if (lower.includes('isabella')) return '#d2b48c';
+  if (lower.includes('blue')) return '#aeb9c3';
+  if (lower.includes('liver')) return '#7d5a44';
+  if (lower.includes('yellow') || lower.includes('fawn')) return '#e1ad01';
+  if (lower.includes('wild type') || lower.includes('grey')) return '#8e8e8e';
+  if (lower.includes('black')) return '#2d3436';
+  if (lower.includes('white')) return '#fcfcfc';
+  // Fallback to a distinct HSL color if no keyword matches
+  return `hsl(${index * 137.5}, 60%, 50%)`;
+}
+
 function drawPie(items) {
   const canvas = document.getElementById('pie');
   const ctx = canvas.getContext('2d');
@@ -225,7 +245,7 @@ function drawPie(items) {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, start, start + sliceAngle);
-    ctx.fillStyle = `hsl(${i * 137.5}, 70%, 60%)`;
+    ctx.fillStyle = getPhenoColor(it.name, i);
     ctx.fill();
     slices.push({ start, end: start + sliceAngle, name: it.name, prob: it.prob });
     start += sliceAngle;
