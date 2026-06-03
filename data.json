@@ -2,35 +2,54 @@
   "loci": {
     "K": {
       "name": "K (dominance)",
-      "alleles": ["Kb","ky"],
-      "notes": "Kb is dominant black. ky permissive to A locus."
+      "description": "Kb is dominant black. ky permissive to A locus.",
+      "alleles": [
+        { "id": "Kb", "name": "Dominant Black", "mode": "Dominant" },
+        { "id": "ky", "name": "Non-black", "mode": "Recessive" }
+      ]
     },
     "E": {
       "name": "E (extension)",
-      "alleles": ["E","e"],
-      "notes": "ee = recessive yellow (eumelanin suppressed)."
+      "description": "ee = recessive yellow (eumelanin suppressed).",
+      "alleles": [
+        { "id": "Em", "name": "Melanistic", "mode": "Dominant" },
+        { "id": "E", "name": "Normal", "mode": "Dominant" },
+        { "id": "e", "name": "Recessive Yellow", "mode": "Recessive" }
+      ]
     },
     "A": {
       "name": "A (agouti series)",
-      "alleles": ["AY","AW","at","a"],
-      "notes": "Order used: AY > AW > at > a. at and a treated as recessive patterns where noted."
+      "description": "Order used: AY > AW > at > a.",
+      "alleles": [
+        { "id": "AY", "name": "Sable/Fawn", "mode": "Dominant" },
+        { "id": "AW", "name": "Wolf Gray", "mode": "Dominant" },
+        { "id": "at", "name": "Tan Points", "mode": "Dominant" },
+        { "id": "a", "name": "Recessive Black", "mode": "Recessive" }
+      ]
     },
     "B": {
       "name": "B (brown)",
-      "alleles": ["B","b"],
-      "notes": "bb converts black eumelanin to brown."
+      "description": "bb converts black eumelanin to brown.",
+      "alleles": [
+        { "id": "B", "name": "Black", "mode": "Dominant" },
+        { "id": "b", "name": "Brown", "mode": "Recessive" }
+      ]
     },
     "D": {
       "name": "D (dilution)",
-      "alleles": ["D","d"],
-      "notes": "dd dilutes black->blue, brown->lilac."
+      "description": "dd dilutes black->blue, brown->lilac.",
+      "alleles": [
+        { "id": "D", "name": "Full Color", "mode": "Dominant" },
+        { "id": "d", "name": "Diluted", "mode": "Recessive" }
+      ]
+    },
+    "S": {
+      "name": "S (white spotting)",
+      "description": "Controls white patches.",
+      "alleles": [
+        { "id": "S", "name": "Normal", "mode": "Dominant" },
+        { "id": "sp", "name": "Intensive White", "mode": "Recessive" }
+      ]
     }
-  },
-  "assumptions": {
-    "A_at_recessive": true,
-    "A_aa_recessive": true,
-    "AY_is_dominant": true,
-    "Kb_is_dominant": true,
-    "E_ee_overrides": true
   }
 }
