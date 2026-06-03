@@ -13,15 +13,11 @@
     </header>
 
     <div class="app-layout">
-      <!-- Left Column: Quick Guide -->
       <aside class="glass-panel">
         <h3>Quick Guide</h3>
-        <div id="quick-list" class="guide-content">
-          <!-- Populated by JS -->
-        </div>
+        <div id="quick-list" class="guide-content"></div>
       </aside>
 
-      <!-- Middle Column: Parent Selection & Predictions -->
       <section class="main-panel">
         <div class="parents-container">
           <div class="parent-box">
@@ -49,85 +45,19 @@
         </div>
       </section>
 
-      <!-- Right Column: Key & Pie -->
       <aside class="glass-panel">
         <div class="legend-card">
           <h3>Key / Legend</h3>
           <table id="legend-table"></table>
         </div>
         <div class="pie-card">
-          <canvas id="pie" width="260" height="260"></canvas>
+          <canvas id="pie" width="300" height="300"></canvas>
+          <div id="pie-tooltip" class="pie-tooltip"></div>
         </div>
       </aside>
     </div>
-
     <div id="popover" class="popover" aria-hidden="true"></div>
   </main>
-
-  <script src="script.js" defer></script>
-</body>
-</html>
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Yakutian Laika — Puppy Colour Predictor</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="container">
-    <header><h1>Yakutian Laika — Puppy Colour Predictor</h1></header>
-
-    <section class="layout">
-      <aside class="quick-guide">
-        <h3>Quick Guide</h3>
-        <ol id="quick-list"></ol>
-      </aside>
-
-      <section class="cross-panel">
-        <div class="parents-grid">
-          <div class="parent-card">
-            <h3>Sire</h3>
-            <form data-parent="sire" class="locus-form">
-              <!-- loci inserted by script -->
-            </form>
-          </div>
-
-          <div class="parent-card">
-            <h3>Dam</h3>
-            <form data-parent="dam" class="locus-form">
-              <!-- loci inserted by script -->
-            </form>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="predict-btn">Predict</button>
-          <button id="reset-btn">Reset</button>
-        </div>
-
-        <section class="predictions">
-          <h3>Predictions</h3>
-          <div id="predictions-area"></div>
-        </section>
-      </section>
-
-      <aside class="side-panel">
-        <div class="legend-card">
-          <h3>Key / Legend</h3>
-          <table id="legend-table"></table>
-        </div>
-
-        <div class="pie-card">
-          <canvas id="pie" width="260" height="260" aria-label="Phenotype distribution"></canvas>
-        </div>
-      </aside>
-    </section>
-
-    <div id="popover" class="popover" aria-hidden="true"></div>
-  </main>
-
   <script src="script.js" defer></script>
 </body>
 </html>
