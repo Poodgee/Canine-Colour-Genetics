@@ -1,1 +1,181 @@
-..
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dog Colour Predictors — Genetics Hub</title>
+  <style>
+    :root {
+      --bg-top: #0f172a;
+      --bg-bottom: #1e102a;
+      --glass: rgba(30, 41, 59, 0.7);
+      --glass-border: rgba(132, 94, 255, 0.3);
+      --accent: #a78bfa;
+      --accent-hover: #c4b5fd;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --card-radius: 20px;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-top), var(--bg-bottom));
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+    }
+
+    header {
+      margin-bottom: 60px;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      font-weight: 300;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #fff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .breed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      padding: 20px;
+    }
+
+    .breed-card {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--card-radius);
+      padding: 40px 30px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .breed-card:hover {
+      transform: translateY(-10px);
+      border-color: var(--accent);
+      box-shadow: 0 15px 40px rgba(167, 139, 250, 0.2);
+      background: rgba(45, 55, 72, 0.8);
+    }
+
+    .breed-card h2 {
+      font-size: 1.8rem;
+      margin: 0 0 15px 0;
+      color: var(--text-main);
+    }
+
+    .breed-card p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 30px;
+    }
+
+    .btn-predict {
+      padding: 12px 24px;
+      background: var(--accent);
+      color: #1e1b4b;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+
+    .breed-card:hover .btn-predict {
+      background: var(--accent-hover);
+    }
+
+    .coming-soon {
+      opacity: 0.6;
+      filter: grayscale(0.5);
+    }
+
+    .coming-soon .btn-predict {
+      background: #475569;
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    footer {
+      margin-top: 80px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Dog Colour Predictors</h1>
+      <p>Explore the fascinating world of canine genetics. Select a breed to predict the potential coat colours of a future litter.</p>
+    </header>
+
+    <div class="breed-grid">
+      
+      <!-- Yakutian Laika Card -->
+      <a href="breeds/yakutian/" class="breed-card">
+        <h2>Yakutian Laika</h2>
+        <p>Specialised predictor for the unique genetic markers and colour hierarchies of the Yakutian Laika.</p>
+        <div class="btn-predict">Open Predictor</div>
+      </a>
+
+      <!-- Placeholder Card 1 (Coming Soon) -->
+      <div class="breed-card coming-soon">
+        <h2>New Breed</h2>
+        <p>We are currently mapping the genetic markers for our next breed predictor.</p>
+        <div class="btn-predict">Coming Soon</div>
+      </div>
+
+      <!-- Placeholder Card 2 (Coming Soon) -->
+      <div class="breed-card coming-soon">
+        <h2>New Breed</h2>
+        <p>More breeds will be added as we expand our genetic database.</p>
+        <div class="btn-predict">Coming Soon</div>
+      </div>
+
+    </div>
+
+    <footer>
+      <p>&copy; 2024 Dog Colour Predictors &bull; Built for Breeders & Genetic Enthusiasts</p>
+    </footer>
+  </div>
+
+</body>
+</html>
