@@ -20,8 +20,8 @@ async function loadData() {
 function buildGuide() {
   const guide = document.getElementById('quick-list');
   guide.innerHTML = `
-    <p><strong>For Experts:</strong> Select the alleles for both parents. The engine calculates the Punnett square for each locus and resolves phenotypes based on strict hierarchy.</p>
-    <p><strong>For Beginners:</strong> Use the <strong>?</strong> buttons to see what each gene does. Choose a combination for the Sire and Dam, then click <strong>Predict</strong> to see the possible puppy colours!</p>
+    <p><strong>For Experts:</strong> Select alleles for both parents. The engine calculates the Punnett square and resolves phenotypes based on strict hierarchy.</p>
+    <p><strong>For Beginners:</strong> Use the <strong>?</strong> buttons to see gene effects. Choose combinations for Sire and Dam, then click <strong>Predict</strong>!</p>
     <p><strong>Pro Tip:</strong> Use the <strong>Random</strong> button to explore how different gene combinations interact.</p>
   `;
 }
@@ -85,8 +85,27 @@ function randomHandler() {
   predictHandler();
 }
 
+// --- UPDATED RESET LOGIC ---
 function resetHandler() {
-  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  const defaults = {
+    'K': ['ky', 'ky'],
+    'E': ['E', 'E'],
+    'A': ['a', 'a'],
+    'B': ['B', 'B'],
+    'D': ['D', 'D'],
+    'S': ['S', 'sp'] 
+  };
+
+  const parents = ['sire', 'dam'];
+  parents.forEach(p => {
+    Object.keys(defaults).forEach(locus => {
+      const a1 = document.getElementById(`${p}-${locus}-a1`);
+      const a2 = document.getElementById(`${p}-${locus}-a2`);
+      if (a1) a1.value = defaults[locus][0];
+      if (a2) a2.value = defaults[locus][1];
+    });
+  });
+
   document.getElementById('predictions-area').innerHTML = '';
   document.getElementById('possibilities-count').textContent = '';
   clearPie();
@@ -177,17 +196,15 @@ function determinePhenotype(geno) {
     name += ' (with Mask)';
   }
 
-  // Updated S Locus naming
+  // UPDATED S-LOCUS NAMING
   const sGeno = geno['S'];
-  if (sGeno === 'spsp') {
-    name = `Intensive White & ${name}`;
-  } else if (sGeno === 'Ssp') {
-    name = `White & ${name}`;
-  }
+  if (sGeno === 'spsp') name = `Intensive White & ${name}`;
+  else if (sGeno === 'Ssp') name = `White & ${name}`;
 
   return { name, genoStr: formatGeno(geno) };
 }
 
+// --- UPDATED FORMATTING (Removed "K:", "E:" etc) ---
 function formatGeno(geno) {
   return Object.entries(geno).map(([l, g]) => g).join(' ');
 }
@@ -215,19 +232,6 @@ function cartesian(arr) {
     acc.forEach(a => cur.forEach(c => out.push(a.concat([c]))));
     return out;
   }, [[]]);
-}
-
-function getPhenoColor(name, index) {
-  const lower = name.toLowerCase();
-  if (lower.includes('isabella')) return '#d2b48c';
-  if (lower.includes('blue')) return '#aeb9c3';
-  if (lower.includes('liver')) return '#7d5a44';
-  if (lower.includes('yellow') || lower.includes('fawn')) return '#e1ad01';
-  if (lower.includes('wild type') || lower.includes('grey')) return '#8e8e8e';
-  if (lower.includes('black')) return '#2d3436';
-  if (lower.includes('white')) return '#fcfcfc';
-  // Fallback to a distinct HSL color if no keyword matches
-  return `hsl(${index * 137.5}, 60%, 50%)`;
 }
 
 function drawPie(items) {
@@ -269,6 +273,18 @@ function drawPie(items) {
     }
   };
   canvas.onmouseleave = () => tooltip.style.display = 'none';
+}
+
+function getPhenoColor(name, index) {
+  const lower = name.toLowerCase();
+  if (lower.includes('isabella')) return '#d2b48c';
+  if (lower.includes('blue')) return '#aeb9c3';
+  if (lower.includes('liver')) return '#7d5a44';
+  if (lower.includes('yellow') || lower.includes('fawn')) return '#e1ad01';
+  if (lower.includes('wild type')) return '#8e8e8e';
+  if (lower.includes('black')) return '#2d3436';
+  if (lower.includes('white')) return '#fcfcfc';
+  return `hsl(${index * 137.5}, 60%, 50%)`;
 }
 
 function clearPie() {
