@@ -98,3 +98,73 @@ button { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: point
   .app-layout { grid-template-columns: 1fr; }
   .parents-container { grid-template-columns: 1fr; }
 }
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.back-link, .source-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.back-link:hover, .source-link:hover {
+  color: var(--accent-hover);
+}
+
+/* Sources Section */
+.sources-section {
+  margin-top: 40px;
+  margin-bottom: 60px;
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.source-item {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.source-item a {
+  color: var(--accent);
+  text-decoration: none;
+  margin-left: 5px;
+}
+
+/* PREDICTION PHOTOS */
+.prediction-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.pheno-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #0f172a;
+  border: 1px solid var(--glass-border);
+}
+
+.prediction-text {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Smooth scrolling for the "Sources" link */
+html {
+  scroll-behavior: smooth;
+}
+
