@@ -85,7 +85,6 @@ function randomHandler() {
   predictHandler();
 }
 
-// --- UPDATED RESET LOGIC ---
 function resetHandler() {
   const defaults = {
     'K': ['ky', 'ky'],
@@ -155,56 +154,77 @@ function resolvePhenotypes(punnett) {
     const geno = {};
     combo.forEach(c => geno[c.l] = c.g);
     const ph = determinePhenotype(geno);
-    const key = `${ph.name}||${ph.genoStr}`;
+    const key = `${ph.name}||${ph.carrierInfo}||${ph.genoStr}`;
     map[key] = (map[key] || 0) + prob;
   });
 
   return Object.entries(map).map(([k, v]) => {
-    const [name, genoStr] = k.split('||');
-    return { name, genoStr, prob: v };
+    const [name, carrier, genoStr] = k.split('||');
+    return { name, carrier, genoStr, prob: v };
   }).sort((a, b) => b.prob - a.prob);
 }
 
 function determinePhenotype(geno) {
-  if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', genoStr: formatGeno(geno) };
+  let carrierNotes = [];
+  
+  // 1. E Locus / Mask
+  if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno) };
+  
+  const isMasked = geno['E'].includes('Em');
+  if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
 
+  // 2. Base Pigments
   const isLiver = geno['B'] === 'bb';
   const isBlue = geno['D'] === 'dd';
   const isIsabella = isLiver && isBlue;
+  if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
+  if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
+
+  // 3. K Locus
   const hasKB = geno['K'].includes('KB');
+  if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
+
+  // 4. A Locus
   const aGeno = geno['A'];
-  
   let aColor = 'Recessive Black';
   if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
   else if (aGeno.includes('aw')) aColor = 'Wild Type';
   else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
   else if (aGeno === 'aa') aColor = 'Recessive Black';
 
+  // 5. Name Assembly
   let name = '';
   if (isIsabella) name = 'Isabella';
   else if (hasKB) {
     name = 'Dominant Black';
-    if (isLiver) name = 'Liver (Dominant Black)';
-    if (isBlue) name = 'Blue (Dominant Black)';
+    if (isLiver) name = 'Liver Black';
+    if (isBlue) name = 'Blue Black';
   } else {
     name = aColor;
     if (isLiver) name = `Liver ${name}`;
     if (isBlue) name = `Blue ${name}`;
   }
 
-  if (geno['E'].includes('Em') && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
+  if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
     name += ' (with Mask)';
   }
 
-  // UPDATED S-LOCUS NAMING
+  // S Locus
   const sGeno = geno['S'];
   if (sGeno === 'spsp') name = `Intensive White & ${name}`;
-  else if (sGeno === 'Ssp') name = `White & ${name}`;
+  else if (sGeno === 'Ssp') {
+    name = `White & ${name}`;
+  } else if (sGeno === 'Ssp') {
+     // Already handled by name, but we could add 'Piebald Carrier' if we wanted
+  }
 
-  return { name, genoStr: formatGeno(geno) };
+  return { 
+    name, 
+    carrierInfo: carrierNotes.join(', '), 
+    genoStr: formatGeno(geno) 
+  };
 }
 
-// --- UPDATED FORMATTING (Removed "K:", "E:" etc) ---
 function formatGeno(geno) {
   return Object.entries(geno).map(([l, g]) => g).join(' ');
 }
@@ -219,7 +239,10 @@ function renderPredictions(items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
     div.innerHTML = `
-      <div class="prediction-title">${it.name} — ${(it.prob * 100).toFixed(1)}%</div>
+      <div class="prediction-title">
+        <span>${it.name} — ${(it.prob * 100).toFixed(1)}%</span>
+      </div>
+      ${it.carrier ? `<span class="carrier-text">${it.carrier}</span>` : ''}
       <div class="prediction-genotype">${it.genoStr}</div>
     `;
     area.appendChild(div);
