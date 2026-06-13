@@ -3,7 +3,6 @@ let data = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
-  // buildGuide(); <-- REMOVED
   buildParentsUI();
   buildLegend();
   wireButtons();
@@ -17,12 +16,11 @@ async function loadData() {
   } catch (e) { console.error("Data load failed", e); }
 }
 
-// buildGuide function REMOVED from here
-
 function buildParentsUI() {
   const parents = ['sire', 'dam'];
   parents.forEach(parent => {
     const form = document.querySelector(`form[data-parent="${parent}"]`);
+    if (!form) return;
     form.innerHTML = '';
     const keys = Object.keys(data.loci);
     keys.forEach(locus => {
@@ -54,6 +52,7 @@ function buildParentsUI() {
 
 function buildLegend() {
   const table = document.getElementById('legend-table');
+  if (!table) return;
   table.innerHTML = '<thead><tr><th>Allele</th><th>Meaning</th></tr></thead><tbody></tbody>';
   const tbody = table.querySelector('tbody');
   Object.keys(data.loci).forEach(locus => {
@@ -79,32 +78,16 @@ function randomHandler() {
 }
 
 function resetHandler() {
-  const breed = window.location.pathname;
+  const url = window.location.href.toLowerCase();
   let defaults = {};
 
-  if (breed.includes('yakutian')) {
+  if (url.includes('yakutian')) {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'], 'A': ['a', 'a'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'sp'] };
-  } else if (breed.includes('greatdane')) {
+  } else if (url.includes('greatdane')) {
     defaults = { 'M': ['m', 'm'], 'H': ['h', 'h'], 'K': ['KB', 'KB'], 'E': ['Em', 'Em'], 'A': ['AY', 'AY'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'S'] };
   } else {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'] };
   }
-
-  const parents = ['sire', 'dam'];
-  parents.forEach(p => {
-    Object.keys(defaults).forEach(locus => {
-      const a1 = document.getElementById(`${p}-${locus}-a1`);
-      const a2 = document.getElementById(`${p}-${locus}-a2`);
-      if (a1) a1.value = defaults[locus][0];
-      if (a2) a2.value = defaults[locus][1];
-    });
-  });
-
-  document.getElementById('predictions-area').innerHTML = '';
-  document.getElementById('possibilities-count').textContent = '';
-  clearPie();
-}
-
 
   const parents = ['sire', 'dam'];
   parents.forEach(p => {
@@ -176,32 +159,25 @@ function resolvePhenotypes(punnett) {
 }
 
 function determinePhenotype(geno) {
-  const breed = window.location.pathname;
+  const url = window.location.href.toLowerCase();
   let carrierNotes = [];
 
-  // --- YAKUTIAN LAIKA LOGIC ---
-  if (breed.includes('yakutian')) {
+  if (url.includes('yakutian')) {
     if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno) };
-    
     const isMasked = geno['E'].includes('Em');
     if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
-
     const isLiver = geno['B'] === 'bb';
     const isBlue = geno['D'] === 'dd';
     const isIsabella = isLiver && isBlue;
     if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
-
     const hasKB = geno['K'].includes('KB');
     if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
-
     const aGeno = geno['A'];
     let aColor = 'Recessive Black';
     if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
     else if (aGeno.includes('aw')) aColor = 'Wild Type';
     else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
-    else if (aGeno === 'aa') aColor = 'Recessive Black';
-
     let name = isIsabella ? 'Isabella' : (hasKB ? 'Dominant Black' : aColor);
     if (!isIsabella && hasKB) {
       if (isLiver) name = 'Liver Black';
@@ -210,63 +186,30 @@ function determinePhenotype(geno) {
       if (isLiver) name = `Liver ${name}`;
       if (isBlue) name = `Blue ${name}`;
     }
-
-    if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
-      name += ' (with Mask)';
-    }
-
+    if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) name += ' (with Mask)';
     const sGeno = geno['S'];
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
     else if (sGeno === 'Ssp') name = `White & ${name}`;
-
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno) };
-  } 
-
-  // --- GREAT DANE LOGIC ---
-  else if (breed.includes('greatdane')) {
+  } else if (url.includes('greatdane')) {
     const isLiver = geno['B'] === 'bb';
     const isBlue = geno['D'] === 'dd';
     if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
-
-    // 1. Base Colour (K Locus)
     let name = 'Recessive Black';
     if (geno['K'].includes('KB')) name = 'Dominant Black';
     else if (geno['K'].includes('kbr')) name = 'Brindle';
-    
     if (isLiver) name = `Liver ${name}`;
     if (isBlue) name = `Blue ${name}`;
-
-    // 2. Merle & Harlequin
     const isMerle = geno['M'].includes('M');
     const isHarlequin = geno['H'].includes('H') && isMerle;
-
-    if (isHarlequin) {
-      name = `Harlequin ${name}`;
-    } else if (isMerle) {
-      name = `Merle ${name}`;
-    }
-
-    // 3. Mantle (si si)
-    if (geno['S'] === 'sisi') {
-      name = `Mantle ${name}`;
-    } else if (geno['S'] === 'Ssi') {
-      carrierNotes.push('Mantle Carrier');
-    }
-
+    if (isHarlequin) name = `Harlequin ${name}`;
+    else if (isMerle) name = `Merle ${name}`;
+    if (geno['S'] === 'sisi') name = `Mantle ${name}`;
+    else if (geno['S'] === 'Ssi') carrierNotes.push('Mantle Carrier');
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno) };
   }
-
-  // Fallback
   return { name: 'Unknown Phenotype', carrierInfo: '', genoStr: formatGeno(geno) };
-}
-
-
-  return { 
-    name, 
-    carrierInfo: carrierNotes.join(', '), 
-    genoStr: formatGeno(geno) 
-  };
 }
 
 function formatGeno(geno) {
@@ -278,14 +221,11 @@ function renderPredictions(items) {
   const count = document.getElementById('possibilities-count');
   area.innerHTML = '';
   count.textContent = `${items.length} possibilities`;
-
   items.forEach(it => {
     const div = document.createElement('div');
     div.className = 'prediction-item';
     div.innerHTML = `
-      <div class="prediction-title">
-        <span>${it.name} — ${(it.prob * 100).toFixed(1)}%</span>
-      </div>
+      <div class="prediction-title"><span>${it.name} — ${(it.prob * 100).toFixed(1)}%</span></div>
       ${it.carrier ? `<span class="carrier-text">${it.carrier}</span>` : ''}
       <div class="prediction-genotype">${it.genoStr}</div>
     `;
@@ -306,11 +246,9 @@ function drawPie(items) {
   const ctx = canvas.getContext('2d');
   const tooltip = document.getElementById('pie-tooltip');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
   let start = -0.5 * Math.PI;
   const cx = canvas.width / 2, cy = canvas.height / 2, r = 120;
   const slices = [];
-
   items.forEach((it, i) => {
     const sliceAngle = it.prob * Math.PI * 2;
     ctx.beginPath();
@@ -321,14 +259,12 @@ function drawPie(items) {
     slices.push({ start, end: start + sliceAngle, name: it.name, prob: it.prob });
     start += sliceAngle;
   });
-
   canvas.onmousemove = (e) => {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left - cx;
     const y = e.clientY - rect.top - cy;
     const angle = Math.atan2(y, x);
     const normalizedAngle = angle < -0.5 * Math.PI ? angle + 2 * Math.PI : angle;
-
     const found = slices.find(s => normalizedAngle >= s.start && normalizedAngle <= s.end);
     if (found) {
       tooltip.style.display = 'block';
@@ -356,8 +292,9 @@ function getPhenoColor(name, index) {
 
 function clearPie() {
   const canvas = document.getElementById('pie');
-  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-  document.getElementById('pie-tooltip').style.display = 'none';
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  const tool = document.getElementById('pie-tooltip');
+  if (tool) tool.style.display = 'none';
 }
 
 function wireHelp() {
