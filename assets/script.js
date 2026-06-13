@@ -176,48 +176,91 @@ function resolvePhenotypes(punnett) {
 }
 
 function determinePhenotype(geno) {
+  const breed = window.location.pathname;
   let carrierNotes = [];
-  
-  if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno) };
-  
-  const isMasked = geno['E'].includes('Em');
-  if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
 
-  const isLiver = geno['B'] === 'bb';
-  const isBlue = geno['D'] === 'dd';
-  const isIsabella = isLiver && isBlue;
-  if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
-  if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
+  // --- YAKUTIAN LAIKA LOGIC ---
+  if (breed.includes('yakutian')) {
+    if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno) };
+    
+    const isMasked = geno['E'].includes('Em');
+    if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
 
-  const hasKB = geno['K'].includes('KB');
-  if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
+    const isLiver = geno['B'] === 'bb';
+    const isBlue = geno['D'] === 'dd';
+    const isIsabella = isLiver && isBlue;
+    if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
+    if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
 
-  const aGeno = geno['A'];
-  let aColor = 'Recessive Black';
-  if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
-  else if (aGeno.includes('aw')) aColor = 'Wild Type';
-  else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
-  else if (aGeno === 'aa') aColor = 'Recessive Black';
+    const hasKB = geno['K'].includes('KB');
+    if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
 
-  let name = '';
-  if (isIsabella) name = 'Isabella';
-  else if (hasKB) {
-    name = 'Dominant Black';
-    if (isLiver) name = 'Liver Black';
-    if (isBlue) name = 'Blue Black';
-  } else {
-    name = aColor;
+    const aGeno = geno['A'];
+    let aColor = 'Recessive Black';
+    if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
+    else if (aGeno.includes('aw')) aColor = 'Wild Type';
+    else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
+    else if (aGeno === 'aa') aColor = 'Recessive Black';
+
+    let name = isIsabella ? 'Isabella' : (hasKB ? 'Dominant Black' : aColor);
+    if (!isIsabella && hasKB) {
+      if (isLiver) name = 'Liver Black';
+      if (isBlue) name = 'Blue Black';
+    } else if (!isIsabella && !hasKB) {
+      if (isLiver) name = `Liver ${name}`;
+      if (isBlue) name = `Blue ${name}`;
+    }
+
+    if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
+      name += ' (with Mask)';
+    }
+
+    const sGeno = geno['S'];
+    if (sGeno === 'spsp') name = `Intensive White & ${name}`;
+    else if (sGeno === 'Ssp') name = `White & ${name}`;
+
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno) };
+  } 
+
+  // --- GREAT DANE LOGIC ---
+  else if (breed.includes('greatdane')) {
+    const isLiver = geno['B'] === 'bb';
+    const isBlue = geno['D'] === 'dd';
+    if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
+    if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
+
+    // 1. Base Colour (K Locus)
+    let name = 'Recessive Black';
+    if (geno['K'].includes('KB')) name = 'Dominant Black';
+    else if (geno['K'].includes('kbr')) name = 'Brindle';
+    
     if (isLiver) name = `Liver ${name}`;
     if (isBlue) name = `Blue ${name}`;
+
+    // 2. Merle & Harlequin
+    const isMerle = geno['M'].includes('M');
+    const isHarlequin = geno['H'].includes('H') && isMerle;
+
+    if (isHarlequin) {
+      name = `Harlequin ${name}`;
+    } else if (isMerle) {
+      name = `Merle ${name}`;
+    }
+
+    // 3. Mantle (si si)
+    if (geno['S'] === 'sisi') {
+      name = `Mantle ${name}`;
+    } else if (geno['S'] === 'Ssi') {
+      carrierNotes.push('Mantle Carrier');
+    }
+
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno) };
   }
 
-  if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) {
-    name += ' (with Mask)';
-  }
+  // Fallback
+  return { name: 'Unknown Phenotype', carrierInfo: '', genoStr: formatGeno(geno) };
+}
 
-  const sGeno = geno['S'];
-  if (sGeno === 'spsp') name = `Intensive White & ${name}`;
-  else if (sGeno === 'Ssp') name = `White & ${name}`;
 
   return { 
     name, 
