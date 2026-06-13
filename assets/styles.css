@@ -113,10 +113,6 @@ header h1 {
 }
 
 .help {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--glass-border);
   background: transparent;
   color: var(--accent);
   cursor: help;
