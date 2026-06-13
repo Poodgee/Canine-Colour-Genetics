@@ -1,1 +1,67 @@
-
+{
+  "loci": {
+    "M": {
+      "name": "M (Merle)",
+      "description": "M is the Merle gene. m is non-merle.",
+      "alleles": [
+        { "id": "M", "name": "Merle", "mode": "Dominant" },
+        { "id": "m", "name": "Non-merle", "mode": "Recessive" }
+      ]
+    },
+    "H": {
+      "name": "H (Harlequin)",
+      "description": "H creates Harlequin patterns, but only if M is present.",
+      "alleles": [
+        { "id": "H", "name": "Harlequin", "mode": "Dominant" },
+        { "id": "h", "name": "Non-harlequin", "mode": "Recessive" }
+      ]
+    },
+    "K": {
+      "name": "K (Dominance)",
+      "description": "KB overrides all. kbr is brindle.",
+      "alleles": [
+        { "id": "KB", "name": "Dominant Black", "mode": "Dominant" },
+        { "id": "kbr", "name": "Brindle", "mode": "Dominant" },
+        { "id": "ky", "name": "Recessive Black", "mode": "Recessive" }
+      ]
+    },
+    "E": {
+      "name": "E (Extension)",
+      "description": "All Great Danes are homozygous Em.",
+      "alleles": [
+        { "id": "Em", "name": "Mask", "mode": "Dominant" }
+      ]
+    },
+    "A": {
+      "name": "A (Agouti)",
+      "description": "All Great Danes are homozygous Ay.",
+      "alleles": [
+        { "id": "AY", "name": "Sable", "mode": "Dominant" }
+      ]
+    },
+    "B": {
+      "name": "B (Brown)",
+      "description": "bb converts black to brown (Liver).",
+      "alleles": [
+        { "id": "B", "name": "Non-Dilute", "mode": "Dominant" },
+        { "id": "b", "name": "Brown", "mode": "Recessive" }
+      ]
+    },
+    "D": {
+      "name": "D (Dilution)",
+      "description": "dd dilutes colours (Blue).",
+      "alleles": [
+        { "id": "D", "name": "Non-Dilute", "mode": "Dominant" },
+        { "id": "d", "name": "Dilute", "mode": "Recessive" }
+      ]
+    },
+    "S": {
+      "name": "S (Spotting)",
+      "description": "si si results in Mantle.",
+      "alleles": [
+        { "id": "S", "name": "No Spotting", "mode": "Dominant" },
+        { "id": "si", "name": "Irish Spotting", "mode": "Recessive" }
+      ]
+    }
+  }
+}
