@@ -3,7 +3,7 @@ let data = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
-  buildGuide();
+  // buildGuide(); <-- REMOVED
   buildParentsUI();
   buildLegend();
   wireButtons();
@@ -17,14 +17,7 @@ async function loadData() {
   } catch (e) { console.error("Data load failed", e); }
 }
 
-function buildGuide() {
-  const guide = document.getElementById('quick-list');
-  guide.innerHTML = `
-    <p><strong>For Experts:</strong> Select alleles for both parents. The engine calculates the Punnett square and resolves phenotypes based on strict hierarchy.</p>
-    <p><strong>For Beginners:</strong> Use the <strong>?</strong> buttons to see gene effects. Choose combinations for Sire and Dam, then click <strong>Predict</strong>!</p>
-    <p><strong>Pro Tip:</strong> Use the <strong>Random</strong> button to explore how different gene combinations interact.</p>
-  `;
-}
+// buildGuide function REMOVED from here
 
 function buildParentsUI() {
   const parents = ['sire', 'dam'];
@@ -167,24 +160,20 @@ function resolvePhenotypes(punnett) {
 function determinePhenotype(geno) {
   let carrierNotes = [];
   
-  // 1. E Locus / Mask
   if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno) };
   
   const isMasked = geno['E'].includes('Em');
   if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
 
-  // 2. Base Pigments
   const isLiver = geno['B'] === 'bb';
   const isBlue = geno['D'] === 'dd';
   const isIsabella = isLiver && isBlue;
   if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
   if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
 
-  // 3. K Locus
   const hasKB = geno['K'].includes('KB');
   if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
 
-  // 4. A Locus
   const aGeno = geno['A'];
   let aColor = 'Recessive Black';
   if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
@@ -192,7 +181,6 @@ function determinePhenotype(geno) {
   else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
   else if (aGeno === 'aa') aColor = 'Recessive Black';
 
-  // 5. Name Assembly
   let name = '';
   if (isIsabella) name = 'Isabella';
   else if (hasKB) {
@@ -209,14 +197,9 @@ function determinePhenotype(geno) {
     name += ' (with Mask)';
   }
 
-  // S Locus
   const sGeno = geno['S'];
   if (sGeno === 'spsp') name = `Intensive White & ${name}`;
-  else if (sGeno === 'Ssp') {
-    name = `White & ${name}`;
-  } else if (sGeno === 'Ssp') {
-     // Already handled by name, but we could add 'Piebald Carrier' if we wanted
-  }
+  else if (sGeno === 'Ssp') name = `White & ${name}`;
 
   return { 
     name, 
