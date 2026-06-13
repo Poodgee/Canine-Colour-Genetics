@@ -79,14 +79,32 @@ function randomHandler() {
 }
 
 function resetHandler() {
-  const defaults = {
-    'K': ['ky', 'ky'],
-    'E': ['E', 'E'],
-    'A': ['a', 'a'],
-    'B': ['B', 'B'],
-    'D': ['D', 'D'],
-    'S': ['S', 'sp'] 
-  };
+  const breed = window.location.pathname;
+  let defaults = {};
+
+  if (breed.includes('yakutian')) {
+    defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'], 'A': ['a', 'a'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'sp'] };
+  } else if (breed.includes('greatdane')) {
+    defaults = { 'M': ['m', 'm'], 'H': ['h', 'h'], 'K': ['KB', 'KB'], 'E': ['Em', 'Em'], 'A': ['AY', 'AY'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'S'] };
+  } else {
+    defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'] };
+  }
+
+  const parents = ['sire', 'dam'];
+  parents.forEach(p => {
+    Object.keys(defaults).forEach(locus => {
+      const a1 = document.getElementById(`${p}-${locus}-a1`);
+      const a2 = document.getElementById(`${p}-${locus}-a2`);
+      if (a1) a1.value = defaults[locus][0];
+      if (a2) a2.value = defaults[locus][1];
+    });
+  });
+
+  document.getElementById('predictions-area').innerHTML = '';
+  document.getElementById('possibilities-count').textContent = '';
+  clearPie();
+}
+
 
   const parents = ['sire', 'dam'];
   parents.forEach(p => {
