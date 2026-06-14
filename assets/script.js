@@ -279,7 +279,6 @@ function determinePhenotype(geno) {
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard: (isBlue ? false : true) };
   }
   return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
-}
 
   return {
     name: "Unknown",
