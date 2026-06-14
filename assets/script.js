@@ -287,7 +287,6 @@ function determinePhenotype(geno) {
     genoStr: formatGeno(geno),
     isStandard: false,
   };
-}
 
 function renderPredictions(items) {
   const area = document.getElementById("predictions-area");
