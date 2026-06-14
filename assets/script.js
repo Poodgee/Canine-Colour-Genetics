@@ -234,8 +234,11 @@ function determinePhenotype(geno) {
 }
 
 function formatGeno(geno) {
-  return Object.entries(geno).map(([l, g]) => g).join(' ');
+  // This ensures the output looks like the selects: "Mm Hh KBky" 
+  // rather than "M:Mm H:Hh"
+  return Object.values(geno).join(' ');
 }
+
 
 function renderPredictions(items) {
   const area = document.getElementById('predictions-area');
@@ -247,8 +250,6 @@ function renderPredictions(items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
 
-    // FIX: Convert the URL path to lowercase just for the check
-    // This ensures 'GreatDane' in the URL matches 'greatdane' in the code
     const currentPath = window.location.pathname.toLowerCase();
 
     if (currentPath.includes('greatdane')) {
@@ -265,29 +266,29 @@ function renderPredictions(items) {
       const isHarlequin = geno.includes('H') && isMerle;
       const isMantle = geno.includes('sisi');
 
-      // Image paths remain lowercase 'greatdane' as per your folder structure
-      if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_base.PNG');
-      else if (isSable) addLayer(imgStack, 'assets/images/greatdane/fawn_base.PNG');
-      else addLayer(imgStack, 'assets/images/greatdane/black_base.PNG');
+      // FIX: Added ../../ to all paths so they reach the root assets folder
+      if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_base.PNG');
+      else if (isSable) addLayer(imgStack, '../../assets/images/greatdane/fawn_base.PNG');
+      else addLayer(imgStack, '../../assets/images/greatdane/black_base.PNG');
 
       if (isKbr) {
-        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_brindle.PNG');
-        else addLayer(imgStack, 'assets/images/greatdane/fawn_brindle.PNG');
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_brindle.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/fawn_brindle.PNG');
       }
 
       if (isEm) {
-        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_mask.PNG');
-        else addLayer(imgStack, 'assets/images/greatdane/black_mask.PNG');
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_mask.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/black_mask.PNG');
       }
 
-      if (isHarlequin) addLayer(imgStack, 'assets/images/greatdane/harlequin.PNG');
+      if (isHarlequin) addLayer(imgStack, '../../assets/images/greatdane/harlequin.PNG');
       else if (isMerle) {
-        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_merle.PNG');
-        else addLayer(imgStack, 'assets/images/greatdane/merle.PNG');
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_merle.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/merle.PNG');
       }
 
-      if (isMantle) addLayer(imgStack, 'assets/images/greatdane/mantle.PNG');
-      addLayer(imgStack, 'assets/images/greatdane/lineart.PNG');
+      if (isMantle) addLayer(imgStack, '../../assets/images/greatdane/mantle.PNG');
+      addLayer(imgStack, '../../assets/images/greatdane/lineart.PNG');
 
       div.appendChild(imgStack);
     }
@@ -306,6 +307,7 @@ function renderPredictions(items) {
     area.appendChild(div);
   });
 }
+
 
 
 
