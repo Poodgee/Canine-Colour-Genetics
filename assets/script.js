@@ -327,7 +327,7 @@ function renderPredictions(items) {
 
 
 
-ffunction addLayer(container, src) {
+function addLayer(container, src) {
   const img = document.createElement('img');
   img.src = src;
   img.style.position = 'absolute';
