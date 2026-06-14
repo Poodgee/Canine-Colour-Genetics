@@ -28,24 +28,12 @@
     "E": {
       "name": "E (Extension)",
       "description": "All Great Danes are homozygous Em.",
-      "alleles": [
-        { "id": "Em", "name": "Mask", "mode": "Dominant" }
-      ]
+      "alleles": [{ "id": "Em", "name": "Mask", "mode": "Dominant" }]
     },
     "A": {
       "name": "A (Agouti)",
       "description": "All Great Danes are homozygous Ay.",
-      "alleles": [
-        { "id": "AY", "name": "Sable", "mode": "Dominant" }
-      ]
-    },
-    "B": {
-      "name": "B (Brown)",
-      "description": "bb converts black to brown (Liver).",
-      "alleles": [
-        { "id": "B", "name": "Non-Dilute", "mode": "Dominant" },
-        { "id": "b", "name": "Brown", "mode": "Recessive" }
-      ]
+      "alleles": [{ "id": "AY", "name": "Sable", "mode": "Dominant" }]
     },
     "D": {
       "name": "D (Dilution)",

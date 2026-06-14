@@ -116,10 +116,9 @@ function resetHandler() {
     defaults = {
       M: ["m", "m"],
       H: ["h", "h"],
-      K: ["KB", "KB"],
+      K: ["ky", "ky"],
       E: ["Em", "Em"],
       A: ["AY", "AY"],
-      B: ["B", "B"],
       D: ["D", "D"],
       S: ["S", "S"],
     };
