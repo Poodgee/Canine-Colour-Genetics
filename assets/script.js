@@ -211,29 +211,36 @@ function resolvePhenotypes(punnett) {
 function determinePhenotype(geno) {
   const url = window.location.href.toLowerCase();
   let carrierNotes = [];
-  let isStandard = true; // Default to true
+  let isStandard = true;
 
+  // --- YAKUTIAN LAIKA LOGIC ---
   if (url.includes("yakutian")) {
     if (geno["E"] === "ee")
       return {
         name: "Recessive Yellow/Red",
         carrierInfo: "",
         genoStr: formatGeno(geno),
+        isStandard: false,
       };
+
     const isMasked = geno["E"].includes("Em");
     if (!isMasked && geno["E"] === "Ee") carrierNotes.push("Mask Carrier");
+
     const isLiver = geno["B"] === "bb";
     const isBlue = geno["D"] === "dd";
     const isIsabella = isLiver && isBlue;
     if (geno["B"] === "Bb") carrierNotes.push("Liver Carrier");
     if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
+
     const hasKB = geno["K"].includes("KB");
     if (geno["K"] === "KBky") carrierNotes.push("Non-black Carrier");
+
     const aGeno = geno["A"];
     let aColor = "Recessive Black";
     if (aGeno.includes("ay")) aColor = "Sable/Fawn";
     else if (aGeno.includes("aw")) aColor = "Wild Type";
     else if (aGeno.includes("at")) aColor = "Black and Tan (Tri-colour)";
+
     let name = isIsabella ? "Isabella" : hasKB ? "Dominant Black" : aColor;
     if (!isIsabella && hasKB) {
       if (isLiver) name = "Liver Black";
@@ -242,46 +249,165 @@ function determinePhenotype(geno) {
       if (isLiver) name = `Liver ${name}`;
       if (isBlue) name = `Blue ${name}`;
     }
+
     if (
       isMasked &&
       (aGeno.includes("ay") || aGeno.includes("aw") || aGeno.includes("at"))
     )
       name += " (with Mask)";
+
     const sGeno = geno["S"];
     if (sGeno === "spsp") name = `Intensive White & ${name}`;
     else if (sGeno === "Ssp") name = `White & ${name}`;
+
+    if (isIsabella) isStandard = false;
+
     return {
       name,
       carrierInfo: carrierNotes.join(", "),
       genoStr: formatGeno(geno),
-    };
-  } else if (url.includes("greatdane")) {
-    const isLiver = geno["B"] === "bb";
-    const isBlue = geno["D"] === "dd";
-    if (geno["B"] === "Bb") carrierNotes.push("Liver Carrier");
-    if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
-    let name = "Recessive Black";
-    if (geno["K"].includes("KB")) name = "Dominant Black";
-    else if (geno["K"].includes("kbr")) name = "Brindle";
-    if (isLiver) name = `Liver ${name}`;
-    if (isBlue) name = `Blue ${name}`;
-    const isMerle = geno["M"].includes("M");
-    const isHarlequin = geno["H"].includes("H") && isMerle;
-    if (isHarlequin) name = `Harlequin ${name}`;
-    else if (isMerle) name = `Merle ${name}`;
-    if (geno["S"] === "sisi") name = `Mantle ${name}`;
-    else if (geno["S"] === "Ssi") carrierNotes.push("Mantle Carrier");
-    return {
-      name,
-      carrierInfo: carrierNotes.join(", "),
-      genoStr: formatGeno(geno),
+      isStandard,
     };
   }
+
+  // --- GREAT DANE LOGIC ---
+  else if (url.includes("greatdane")) {
+    const isBlue = geno["D"] === "dd";
+    if (isBlue) isStandard = false; // Blue is generally non-standard
+
+    const hasKB = geno["K"].includes("KB");
+    const hasKbr = geno["K"].includes("kbr");
+    const hasKy = geno["K"] === "kyky";
+
+    // Carrier notes
+    if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
+    if (geno["K"] === "KBky") carrierNotes.push("Non-black Carrier");
+    if (geno["S"] === "Ssi") carrierNotes.push("Mantle Carrier");
+
+    // Base Colour
+    let name = "Recessive Black";
+    if (hasKB) name = "Dominant Black";
+    else if (hasKbr) name = "Brindle";
+
+    if (isBlue) name = `Blue ${name}`;
+
+    // Patterns
+    const isMerle = geno["M"].includes("M");
+    const isHarlequin = geno["H"].includes("H") && isMerle;
+
+    if (isHarlequin) name = `Harlequin ${name}`;
+    else if (isMerle) name = `Merle ${name}`;
+
+    // Mantle
+    if (geno["S"] === "sisi") name = `Mantle ${name}`;
+
+    return {
+      name,
+      carrierInfo: carrierNotes.join(", "),
+      genoStr: formatGeno(geno),
+      isStandard,
+    };
+  }
+
   return {
-    name: "Unknown Phenotype",
+    name: "Unknown",
     carrierInfo: "",
     genoStr: formatGeno(geno),
+    isStandard: false,
   };
+}
+
+function renderPredictions(items) {
+  const area = document.getElementById("predictions-area");
+  const count = document.getElementById("possibilities-count");
+  area.innerHTML = "";
+  count.textContent = `${items.length} possibilities`;
+
+  items.forEach((it) => {
+    const div = document.createElement("div");
+    div.className = "prediction-item";
+
+    // --- IMAGE STACK SYSTEM ---
+    const imgStack = document.createElement("div");
+    imgStack.className = "pheno-stack";
+
+    // We only do layering for Great Danes for now
+    if (window.location.pathname.includes("greatdane")) {
+      const geno = it.genoStr;
+      const isBlue = geno.includes("dd");
+      const isSable = geno.includes("AY");
+      const isKB = geno.includes("KB");
+      const isKbr = geno.includes("kbr");
+      const isEm = geno.includes("Em");
+      const isMerle = geno.includes("M");
+      const isHarlequin = geno.includes("H") && isMerle;
+      const isMantle = geno.includes("sisi");
+
+      // Layer 1: Base
+      if (isBlue) addLayer(imgStack, "assets/images/greatdane/blue_base.PNG");
+      else if (isSable)
+        addLayer(imgStack, "assets/images/greatdane/fawn_base.PNG");
+      else addLayer(imgStack, "assets/images/greatdane/black_base.PNG");
+
+      // Layer 2: Brindle
+      if (isKbr) {
+        if (isBlue)
+          addLayer(imgStack, "assets/images/greatdane/blue_brindle.PNG");
+        else addLayer(imgStack, "assets/images/greatdane/fawn_brindle.PNG");
+      }
+
+      // Layer 3: Mask
+      if (isEm) {
+        if (isBlue) addLayer(imgStack, "assets/images/greatdane/blue_mask.PNG");
+        else addLayer(imgStack, "assets/images/greatdane/black_mask.PNG");
+      }
+
+      // Layer 4: Merle/Harlequin
+      if (isHarlequin)
+        addLayer(imgStack, "assets/images/greatdane/harlequin.PNG");
+      else if (isMerle) {
+        if (isBlue)
+          addLayer(imgStack, "assets/images/greatdane/blue_merle.PNG");
+        else addLayer(imgStack, "assets/images/greatdane/merle.PNG");
+      }
+
+      // Layer 5: Mantle
+      if (isMantle) addLayer(imgStack, "assets/images/greatdane/mantle.PNG");
+
+      // Layer 6: Final Lineart
+      addLayer(imgStack, "assets/images/greatdane/lineart.PNG");
+    } else {
+      // Yakutian fallback (use a single image or default)
+      addLayer(imgStack, "assets/images/yakutian/default.PNG");
+    }
+
+    const textDiv = document.createElement("div");
+    textDiv.className = "prediction-text";
+    textDiv.innerHTML = `
+      <div class="prediction-title">
+        <span>${it.name} — ${(it.prob * 100).toFixed(1)}% ${it.isStandard ? "✅" : "⚪"}</span>
+      </div>
+      ${it.carrier ? `<span class="carrier-text">${it.carrier}</span>` : ""}
+      <div class="prediction-genotype">${it.genoStr}</div>
+    `;
+
+    div.appendChild(imgStack);
+    div.appendChild(textDiv);
+    area.appendChild(div);
+  });
+}
+
+// Helper function to handle image stacking
+function addLayer(container, src) {
+  const img = document.createElement("img");
+  img.src = src;
+  img.style.position = "absolute";
+  img.style.top = "0";
+  img.style.left = "0";
+  img.style.width = "100%";
+  img.style.height = "100%";
+  img.style.pointerEvents = "none";
+  container.appendChild(img);
 }
 
 function formatGeno(geno) {
