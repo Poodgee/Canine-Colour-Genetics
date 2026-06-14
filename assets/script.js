@@ -234,10 +234,26 @@ function determinePhenotype(geno) {
 }
 
 function formatGeno(geno) {
-  // This ensures the output looks like the selects: "Mm Hh KBky" 
-  // rather than "M:Mm H:Hh"
-  return Object.values(geno).join(' ');
+  const url = window.location.href.toLowerCase();
+  let order = [];
+
+  // Define the sequence based on the breed
+  if (url.includes('greatdane')) {
+    order = ['K', 'A', 'E', 'D', 'M', 'H', 'S'];
+  } else if (url.includes('yakutian')) {
+    order = ['K', 'A', 'E', 'B', 'D', 'S'];
+  } else {
+    order = Object.keys(geno); // Fallback to whatever is available
+  }
+
+  // Map the order to the actual values in the genotype object
+  const result = order
+    .filter(locus => geno[locus]) // Only include loci that actually exist for this dog
+    .map(locus => geno[locus]);
+
+  return result.join(' '); // Returns "KBky ayay EmEm dd SS" etc.
 }
+
 
 
 function renderPredictions(items) {
@@ -311,15 +327,18 @@ function renderPredictions(items) {
 
 
 
-function addLayer(container, src) {
+ffunction addLayer(container, src) {
   const img = document.createElement('img');
   img.src = src;
   img.style.position = 'absolute';
-  img.style.top = '0'; img.style.left = '0';
-  img.style.width = '100%'; img.style.height = '100%';
+  img.style.top = '0'; 
+  img.style.left = '0';
+  img.style.width = '100%'; // This ensures it fills the 80px box
+  img.style.height = '100%'; // This ensures it fills the 80px box
   img.style.pointerEvents = 'none';
   container.appendChild(img);
 }
+
 
 function cartesian(arr) {
   return arr.reduce((acc, cur) => {
