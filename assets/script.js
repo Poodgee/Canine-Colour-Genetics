@@ -210,103 +210,76 @@ function resolvePhenotypes(punnett) {
 function determinePhenotype(geno) {
   const url = window.location.href.toLowerCase();
   let carrierNotes = [];
-  let isStandard = true;
 
-  // --- YAKUTIAN LAIKA LOGIC ---
-  if (url.includes("yakutian")) {
-    if (geno["E"] === "ee")
-      return {
-        name: "Recessive Yellow/Red",
-        carrierInfo: "",
-        genoStr: formatGeno(geno),
-        isStandard: false,
-      };
-
-    const isMasked = geno["E"].includes("Em");
-    if (!isMasked && geno["E"] === "Ee") carrierNotes.push("Mask Carrier");
-
-    const isLiver = geno["B"] === "bb";
-    const isBlue = geno["D"] === "dd";
+  if (url.includes('yakutian')) {
+    if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
+    const isMasked = geno['E'].includes('Em');
+    if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
+    const isLiver = geno['B'] === 'bb';
+    const isBlue = geno['D'] === 'dd';
     const isIsabella = isLiver && isBlue;
-    if (geno["B"] === "Bb") carrierNotes.push("Liver Carrier");
-    if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
-
-    const hasKB = geno["K"].includes("KB");
-    if (geno["K"] === "KBky") carrierNotes.push("Non-black Carrier");
-
-    const aGeno = geno["A"];
-    let aColor = "Recessive Black";
-    if (aGeno.includes("ay")) aColor = "Sable/Fawn";
-    else if (aGeno.includes("aw")) aColor = "Wild Type";
-    else if (aGeno.includes("at")) aColor = "Black and Tan (Tri-colour)";
-
-    let name = isIsabella ? "Isabella" : hasKB ? "Dominant Black" : aColor;
+    if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
+    if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
+    const hasKB = geno['K'].includes('KB');
+    if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
+    const aGeno = geno['A'];
+    let aColor = 'Recessive Black';
+    if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
+    else if (aGeno.includes('aw')) aColor = 'Wild Type';
+    else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
+    let name = isIsabella ? 'Isabella' : (hasKB ? 'Dominant Black' : aColor);
     if (!isIsabella && hasKB) {
-      if (isLiver) name = "Liver Black";
-      if (isBlue) name = "Blue Black";
+      if (isLiver) name = 'Liver Black';
+      if (isBlue) name = 'Blue Black';
     } else if (!isIsabella && !hasKB) {
       if (isLiver) name = `Liver ${name}`;
       if (isBlue) name = `Blue ${name}`;
     }
-
-    if (
-      isMasked &&
-      (aGeno.includes("ay") || aGeno.includes("aw") || aGeno.includes("at"))
-    )
-      name += " (with Mask)";
-
-    const sGeno = geno["S"];
-    if (sGeno === "spsp") name = `Intensive White & ${name}`;
-    else if (sGeno === "Ssp") name = `White & ${name}`;
-
-    if (isIsabella) isStandard = false;
-
-    return {
-      name,
-      carrierInfo: carrierNotes.join(", "),
-      genoStr: formatGeno(geno),
-      isStandard,
-    };
-  }
-
-  // --- GREAT DANE LOGIC ---
-  else if (url.includes("greatdane")) {
-    const isBlue = geno["D"] === "dd";
-    if (isBlue) isStandard = false; // Blue is generally non-standard
-
-    const hasKB = geno["K"].includes("KB");
-    const hasKbr = geno["K"].includes("kbr");
-    const hasKy = geno["K"] === "kyky";
-
+    if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) name += ' (with Mask)';
+    const sGeno = geno['S'];
+    if (sGeno === 'spsp') name = `Intensive White & ${name}`;
+    else if (sGeno === 'Ssp') name = `White & ${name}`;
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard: (isIsabella ? false : true) };
+  } else if (url.includes('greatdane')) {
+    const isBlue = geno['D'] === 'dd';
+    if (isBlue) carrierNotes.push('Blue'); // For coloring logic
+    
+    const hasKB = geno['K'].includes('KB');
+    const hasKbr = geno['K'].includes('kbr');
+    
     // Carrier notes
-    if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
-    if (geno["K"] === "KBky") carrierNotes.push("Non-black Carrier");
-    if (geno["S"] === "Ssi") carrierNotes.push("Mantle Carrier");
+    if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
+    if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
+    if (geno['S'] === 'Ssi') carrierNotes.push('Mantle Carrier');
 
-    // Base Colour
-    let name = "Recessive Black";
-    if (hasKB) name = "Dominant Black";
-    else if (hasKbr) name = "Brindle";
+    // 1. Determine Base Colour (A Locus check added here!)
+    let name = 'Recessive Black'; 
+    const aGeno = geno['A'];
+    if (aGeno.includes('AY')) name = 'Sable/Fawn';
+    else if (aGeno.includes('aw')) name = 'Wild Type';
+    else if (aGeno.includes('at')) name = 'Black and Tan (Tri-colour)';
+    else if (aGeno === 'aa') name = 'Recessive Black';
 
+    // 2. K Locus Overwrites
+    if (hasKB) name = 'Dominant Black';
+    else if (hasKbr) name = 'Brindle';
+
+    // 3. Dilution
     if (isBlue) name = `Blue ${name}`;
 
-    // Patterns
-    const isMerle = geno["M"].includes("M");
-    const isHarlequin = geno["H"].includes("H") && isMerle;
-
+    // 4. Merle/Harlequin
+    const isMerle = geno['M'].includes('M');
+    const isHarlequin = geno['H'].includes('H') && isMerle;
     if (isHarlequin) name = `Harlequin ${name}`;
     else if (isMerle) name = `Merle ${name}`;
 
-    // Mantle
-    if (geno["S"] === "sisi") name = `Mantle ${name}`;
+    // 5. Mantle
+    if (geno['S'] === 'sisi') name = `Mantle ${name}`;
 
-    return {
-      name,
-      carrierInfo: carrierNotes.join(", "),
-      genoStr: formatGeno(geno),
-      isStandard,
-    };
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard: (isBlue ? false : true) };
   }
+  return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
+}
 
   return {
     name: "Unknown",
