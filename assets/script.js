@@ -247,8 +247,11 @@ function renderPredictions(items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
 
-    // Only create the image stack if we are on the Great Dane page
-    if (window.location.pathname.includes('greatdane')) {
+    // FIX: Convert the URL path to lowercase just for the check
+    // This ensures 'GreatDane' in the URL matches 'greatdane' in the code
+    const currentPath = window.location.pathname.toLowerCase();
+
+    if (currentPath.includes('greatdane')) {
       const imgStack = document.createElement('div');
       imgStack.className = 'pheno-stack';
       
@@ -262,34 +265,28 @@ function renderPredictions(items) {
       const isHarlequin = geno.includes('H') && isMerle;
       const isMantle = geno.includes('sisi');
 
-      // Layer 1: Base
+      // Image paths remain lowercase 'greatdane' as per your folder structure
       if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_base.PNG');
       else if (isSable) addLayer(imgStack, 'assets/images/greatdane/fawn_base.PNG');
       else addLayer(imgStack, 'assets/images/greatdane/black_base.PNG');
 
-      // Layer 2: Brindle
       if (isKbr) {
         if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_brindle.PNG');
         else addLayer(imgStack, 'assets/images/greatdane/fawn_brindle.PNG');
       }
 
-      // Layer 3: Mask
       if (isEm) {
         if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_mask.PNG');
         else addLayer(imgStack, 'assets/images/greatdane/black_mask.PNG');
       }
 
-      // Layer 4: Merle/Harlequin
       if (isHarlequin) addLayer(imgStack, 'assets/images/greatdane/harlequin.PNG');
       else if (isMerle) {
         if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_merle.PNG');
         else addLayer(imgStack, 'assets/images/greatdane/merle.PNG');
       }
 
-      // Layer 5: Mantle
       if (isMantle) addLayer(imgStack, 'assets/images/greatdane/mantle.PNG');
-
-      // Layer 6: Final Lineart
       addLayer(imgStack, 'assets/images/greatdane/lineart.PNG');
 
       div.appendChild(imgStack);
@@ -309,6 +306,7 @@ function renderPredictions(items) {
     area.appendChild(div);
   });
 }
+
 
 
 function addLayer(container, src) {
