@@ -247,10 +247,11 @@ function renderPredictions(items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
 
-    const imgStack = document.createElement('div');
-    imgStack.className = 'pheno-stack';
-    
+    // Only create the image stack if we are on the Great Dane page
     if (window.location.pathname.includes('greatdane')) {
+      const imgStack = document.createElement('div');
+      imgStack.className = 'pheno-stack';
+      
       const geno = it.genoStr;
       const isBlue = geno.includes('dd');
       const isSable = geno.includes('AY');
@@ -261,30 +262,37 @@ function renderPredictions(items) {
       const isHarlequin = geno.includes('H') && isMerle;
       const isMantle = geno.includes('sisi');
 
+      // Layer 1: Base
       if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_base.PNG');
       else if (isSable) addLayer(imgStack, 'assets/images/greatdane/fawn_base.PNG');
       else addLayer(imgStack, 'assets/images/greatdane/black_base.PNG');
 
+      // Layer 2: Brindle
       if (isKbr) {
         if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_brindle.PNG');
         else addLayer(imgStack, 'assets/images/greatdane/fawn_brindle.PNG');
       }
 
+      // Layer 3: Mask
       if (isEm) {
         if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_mask.PNG');
         else addLayer(imgStack, 'assets/images/greatdane/black_mask.PNG');
       }
 
+      // Layer 4: Merle/Harlequin
       if (isHarlequin) addLayer(imgStack, 'assets/images/greatdane/harlequin.PNG');
       else if (isMerle) {
         if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_merle.PNG');
         else addLayer(imgStack, 'assets/images/greatdane/merle.PNG');
       }
 
+      // Layer 5: Mantle
       if (isMantle) addLayer(imgStack, 'assets/images/greatdane/mantle.PNG');
+
+      // Layer 6: Final Lineart
       addLayer(imgStack, 'assets/images/greatdane/lineart.PNG');
-    } else {
-      addLayer(imgStack, 'assets/images/yakutian/default.PNG');
+
+      div.appendChild(imgStack);
     }
 
     const textDiv = document.createElement('div');
@@ -297,11 +305,11 @@ function renderPredictions(items) {
       <div class="prediction-genotype">${it.genoStr}</div>
     `;
 
-    div.appendChild(imgStack);
     div.appendChild(textDiv);
     area.appendChild(div);
   });
 }
+
 
 function addLayer(container, src) {
   const img = document.createElement('img');
