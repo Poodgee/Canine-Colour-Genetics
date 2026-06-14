@@ -33,7 +33,7 @@
     "A": {
       "name": "A (Agouti)",
       "description": "All Great Danes are homozygous Ay.",
-      "alleles": [{ "id": "AY", "name": "Sable", "mode": "Dominant" }]
+      "alleles": [{ "id": "ay", "name": "Fawn", "mode": "Dominant" }]
     },
     "D": {
       "name": "D (Dilution)",
