@@ -173,6 +173,8 @@ function resolvePhenotypes(punnett) {
 function determinePhenotype(geno) {
   const url = window.location.href.toLowerCase();
   let carrierNotes = [];
+  let isStandard = true;
+  let warning = "";
 
   if (url.includes('yakutian')) {
     if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
@@ -203,14 +205,25 @@ function determinePhenotype(geno) {
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
     else if (sGeno === 'Ssp') name = `White & ${name}`;
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard: (isIsabella ? false : true) };
-  } else if (url.includes('greatdane')) {
+  } 
+
+  else if (url.includes('greatdane')) {
+    // 1. Double Merle Warning (MM)
+    const isDoubleMerle = geno['M'] === 'MM';
+    if (isDoubleMerle) {
+      warning = "⚠️ DOUBLE MERLE: High risk of deafness and blindness.";
+      isStandard = false;
+    }
+
     const isBlue = geno['D'] === 'dd';
     const hasKB = geno['K'].includes('KB');
     const hasKbr = geno['K'].includes('kbr');
+    
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
     if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
     if (geno['S'] === 'Ssi') carrierNotes.push('Mantle Carrier');
 
+    // 2. Base Colour Logic (kbr overrides ky, allows A locus)
     let name = 'Recessive Black';
     const aGeno = geno['A'];
     if (aGeno.includes('AY')) name = 'Sable/Fawn';
@@ -219,19 +232,33 @@ function determinePhenotype(geno) {
     else if (aGeno === 'aa') name = 'Recessive Black';
 
     if (hasKB) name = 'Dominant Black';
-    else if (hasKbr) name = 'Brindle';
+    else if (hasKbr) name = 'Brindle'; // This allows the Fawn/Sable colors to show underneath
+    if (hasKbr && aGeno.includes('AY')) name = 'Fawn Brindle';
+
     if (isBlue) name = `Blue ${name}`;
 
+    // 3. Patterns (Merle / Harlequin)
     const isMerle = geno['M'].includes('M');
     const isHarlequin = geno['H'].includes('H') && isMerle;
+
     if (isHarlequin) name = `Harlequin ${name}`;
     else if (isMerle) name = `Merle ${name}`;
+
+    // 4. Mantle
     if (geno['S'] === 'sisi') name = `Mantle ${name}`;
 
-    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard: (isBlue ? false : true) };
+    // 5. Standard Check (AKC/FCI)
+    // Standard: Fawn, Brindle, Black, Black Mantle, Blue, Merle (non-blue), Harlequin (non-blue)
+    if (isBlue && (isMerle || isHarlequin)) {
+      isStandard = false; // Blue Merle/Harlequin is non-standard
+    }
+
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard, warning };
   }
+
   return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
 }
+
 
 function formatGeno(geno) {
   const url = window.location.href.toLowerCase();
@@ -282,29 +309,28 @@ function renderPredictions(items) {
       const isHarlequin = geno.includes('H') && isMerle;
       const isMantle = geno.includes('sisi');
 
-      // FIX: Added ../../ to all paths so they reach the root assets folder
-      if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_base.PNG');
-      else if (isSable) addLayer(imgStack, '../../assets/images/greatdane/fawn_base.PNG');
-      else addLayer(imgStack, '../../assets/images/greatdane/black_base.PNG');
+      if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_base.PNG');
+      else if (isSable) addLayer(imgStack, 'assets/images/greatdane/fawn_base.PNG');
+      else addLayer(imgStack, 'assets/images/greatdane/black_base.PNG');
 
       if (isKbr) {
-        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_brindle.PNG');
-        else addLayer(imgStack, '../../assets/images/greatdane/fawn_brindle.PNG');
+        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_brindle.PNG');
+        else addLayer(imgStack, 'assets/images/greatdane/fawn_brindle.PNG');
       }
 
       if (isEm) {
-        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_mask.PNG');
-        else addLayer(imgStack, '../../assets/images/greatdane/black_mask.PNG');
+        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_mask.PNG');
+        else addLayer(imgStack, 'assets/images/greatdane/black_mask.PNG');
       }
 
-      if (isHarlequin) addLayer(imgStack, '../../assets/images/greatdane/harlequin.PNG');
+      if (isHarlequin) addLayer(imgStack, 'assets/images/greatdane/harlequin.PNG');
       else if (isMerle) {
-        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_merle.PNG');
-        else addLayer(imgStack, '../../assets/images/greatdane/merle.PNG');
+        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_merle.PNG');
+        else addLayer(imgStack, 'assets/images/greatdane/merle.PNG');
       }
 
-      if (isMantle) addLayer(imgStack, '../../assets/images/greatdane/mantle.PNG');
-      addLayer(imgStack, '../../assets/images/greatdane/lineart.PNG');
+      if (isMantle) addLayer(imgStack, 'assets/images/greatdane/mantle.PNG');
+      addLayer(imgStack, 'assets/images/greatdane/lineart.PNG');
 
       div.appendChild(imgStack);
     }
@@ -317,15 +343,13 @@ function renderPredictions(items) {
       </div>
       ${it.carrier ? `<span class="carrier-text">${it.carrier}</span>` : ''}
       <div class="prediction-genotype">${it.genoStr}</div>
+      ${it.warning ? `<span class="warning-text">${it.warning}</span>` : ''}
     `;
 
     div.appendChild(textDiv);
     area.appendChild(div);
   });
 }
-
-
-
 
 function addLayer(container, src) {
   const img = document.createElement('img');
