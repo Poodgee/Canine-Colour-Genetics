@@ -243,7 +243,7 @@ function determinePhenotype(geno) {
     
     const sGeno = safeGet('S');
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
-    else, if (sGeno === 'Ssp') name = `White & ${name}`;
+    else if (sGeno === 'Ssp') name = `White & ${name}`;
     
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), standards: { akc: (isIsabella ? false : true), fci: (isIsabella ? false : true) }, warning: '' };
   } 
