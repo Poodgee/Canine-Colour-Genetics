@@ -527,6 +527,19 @@ function wireHelp() {
   });
 }
 
+function addLayer(container, src) {
+  const img = document.createElement('img');
+  img.src = src;
+  img.style.position = 'absolute';
+  img.style.top = '0';
+  img.style.left = '0';
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.pointerEvents = 'auto'; // Allows right-click "Open image in new tab"
+  container.appendChild(img);
+}
+
+
 // Part 4 ends in:
 //   btn.addEventListener('mouseleave', () => pop.style.display = 'none');
 //  });
