@@ -20,7 +20,6 @@ function buildParentsUI() {
   const parents = ['sire', 'dam'];
   const url = window.location.href.toLowerCase();
   
-  // CORRECT ORDER REQUESTED
   let order = Object.keys(data.loci); 
   if (url.includes('greatdane')) {
     order = ['K', 'A', 'E', 'D', 'M', 'H', 'S']; 
@@ -61,7 +60,11 @@ function buildParentsUI() {
     });
   });
 }
-
+// Part 1 Ends in:
+//    });
+//   });
+// }
+// Part 2
 function buildLegend() {
   const table = document.getElementById('legend-table');
   if (!table) return;
@@ -88,7 +91,6 @@ function randomHandler() {
   });
   predictHandler();
 }
-
 function resetHandler() {
   const url = window.location.href.toLowerCase();
   let defaults = {};
@@ -148,7 +150,10 @@ function computePunnett(parents) {
   });
   return out;
 }
-
+// Part 2 ends in:
+//  return out;
+// }
+// Part 3
 function resolvePhenotypes(punnett) {
   const loci = Object.keys(punnett);
   const options = loci.map(l => Object.entries(punnett[l]).map(([g, p]) => ({ l, g, p })));
@@ -166,23 +171,27 @@ function resolvePhenotypes(punnett) {
 
   return Object.entries(map).map(([k, v]) => {
     const [name, carrier, genoStr] = k.split('||');
-    return { name, carrier, genoStr, prob: v };
+    return { name, carrier, genoStr, prob: v, isStandard: phIsStandard(k) };
   }).sort((a, b) => b.prob - a.prob);
+}
+
+function phIsStandard(key) {
+  const name = key.split('||')[0].toLowerCase();
+  if (name.includes('isabella')) return false;
+  if (name.includes('blue merle') || name.includes('blue harlequin')) return false;
+  return true;
 }
 
 function determinePhenotype(geno) {
   const url = window.location.href.toLowerCase();
   let carrierNotes = [];
-  let isStandard = true;
   let warning = "";
 
   if (url.includes('yakutian')) {
-    if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
+    if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), warning: '' };
     const isMasked = geno['E'].includes('Em');
     if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
-    const isLiver = geno['B'] === 'bb';
-    const isBlue = geno['D'] === 'dd';
-    const isIsabella = isLiver && isBlue;
+    const isLiver = geno['B'] === 'bb', isBlue = geno['D'] === 'dd', isIsabella = isLiver && isBlue;
     if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
     const hasKB = geno['K'].includes('KB');
@@ -204,85 +213,49 @@ function determinePhenotype(geno) {
     const sGeno = geno['S'];
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
     else if (sGeno === 'Ssp') name = `White & ${name}`;
-    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard: (isIsabella ? false : true) };
-  } 
-
-  else if (url.includes('greatdane')) {
-    // 1. Double Merle Warning (MM)
-    const isDoubleMerle = geno['M'] === 'MM';
-    if (isDoubleMerle) {
-      warning = "⚠️ DOUBLE MERLE: High risk of deafness and blindness.";
-      isStandard = false;
-    }
-
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), warning: '' };
+  } else if (url.includes('greatdane')) {
     const isBlue = geno['D'] === 'dd';
     const hasKB = geno['K'].includes('KB');
     const hasKbr = geno['K'].includes('kbr');
-    
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
     if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
     if (geno['S'] === 'Ssi') carrierNotes.push('Mantle Carrier');
+    if (geno['M'] === 'MM') warning = "⚠️ DOUBLE MERLE: High risk of deafness/blindness";
 
-    // 2. Base Colour Logic (kbr overrides ky, allows A locus)
     let name = 'Recessive Black';
     const aGeno = geno['A'];
     if (aGeno.includes('AY')) name = 'Sable/Fawn';
     else if (aGeno.includes('aw')) name = 'Wild Type';
     else if (aGeno.includes('at')) name = 'Black and Tan (Tri-colour)';
-    else if (aGeno === 'aa') name = 'Recessive Black';
-
-    if (hasKB) name = 'Dominant Black';
-    else if (hasKbr) name = 'Brindle'; // This allows the Fawn/Sable colors to show underneath
-    if (hasKbr && aGeno.includes('AY')) name = 'Fawn Brindle';
-
-    if (isBlue) name = `Blue ${name}`;
-
-    // 3. Patterns (Merle / Harlequin)
-    const isMerle = geno['M'].includes('M');
-    const isHarlequin = geno['H'].includes('H') && isMerle;
-
-    if (isHarlequin) name = `Harlequin ${name}`;
-    else if (isMerle) name = `Merle ${name}`;
-
-    // 4. Mantle
-    if (geno['S'] === 'sisi') name = `Mantle ${name}`;
-
-    // 5. Standard Check (AKC/FCI)
-    // Standard: Fawn, Brindle, Black, Black Mantle, Blue, Merle (non-blue), Harlequin (non-blue)
-    if (isBlue && (isMerle || isHarlequin)) {
-      isStandard = false; // Blue Merle/Harlequin is non-standard
+    
+    if (hasKB) {
+      name = 'Black';
+      carrierNotes.push('Dominant Black');
+    } else if (hasKbr) {
+      name = (aGeno.includes('AY')) ? 'Fawn Brindle' : 'Brindle';
     }
 
-    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), isStandard, warning };
+    if (isBlue) name = `Blue ${name}`;
+    const isMerle = geno['M'].includes('M');
+    const isHarlequin = geno['H'].includes('H') && isMerle;
+    if (isHarlequin) name = `Harlequin ${name}`;
+    else if (isMerle) name = `Merle ${name}`;
+    if (geno['S'] === 'sisi') name = `Mantle ${name}`;
+
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), warning };
   }
-
-  return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), isStandard: false };
+  return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), warning: '' };
 }
-
 
 function formatGeno(geno) {
-  const url = window.location.href.toLowerCase();
-  let order = [];
-
-  // Define the sequence based on the breed
-  if (url.includes('greatdane')) {
-    order = ['K', 'A', 'E', 'D', 'M', 'H', 'S'];
-  } else if (url.includes('yakutian')) {
-    order = ['K', 'A', 'E', 'B', 'D', 'S'];
-  } else {
-    order = Object.keys(geno); // Fallback to whatever is available
-  }
-
-  // Map the order to the actual values in the genotype object
-  const result = order
-    .filter(locus => geno[locus]) // Only include loci that actually exist for this dog
-    .map(locus => geno[locus]);
-
-  return result.join(' '); // Returns "KBky ayay EmEm dd SS" etc.
+  return Object.values(geno).join(' ');
 }
-
-
-
+// Part 3 ends in:
+// function formatGeno(geno) {
+//  return Object.values(geno).join(' ');
+// }
+// Part 4
 function renderPredictions(items) {
   const area = document.getElementById('predictions-area');
   const count = document.getElementById('possibilities-count');
@@ -293,8 +266,8 @@ function renderPredictions(items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
 
+    // --- LAYERED IMAGE STACK ---
     const currentPath = window.location.pathname.toLowerCase();
-
     if (currentPath.includes('greatdane')) {
       const imgStack = document.createElement('div');
       imgStack.className = 'pheno-stack';
@@ -309,28 +282,35 @@ function renderPredictions(items) {
       const isHarlequin = geno.includes('H') && isMerle;
       const isMantle = geno.includes('sisi');
 
-      if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_base.PNG');
-      else if (isSable) addLayer(imgStack, 'assets/images/greatdane/fawn_base.PNG');
-      else addLayer(imgStack, 'assets/images/greatdane/black_base.PNG');
+      // Layer 1: Base
+      if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_base.PNG');
+      else if (isSable) addLayer(imgStack, '../../assets/images/greatdane/fawn_base.PNG');
+      else addLayer(imgStack, '../../assets/images/greatdane/black_base.PNG');
 
+      // Layer 2: Brindle
       if (isKbr) {
-        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_brindle.PNG');
-        else addLayer(imgStack, 'assets/images/greatdane/fawn_brindle.PNG');
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_brindle.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/fawn_brindle.PNG');
       }
 
+      // Layer 3: Mask
       if (isEm) {
-        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_mask.PNG');
-        else addLayer(imgStack, 'assets/images/greatdane/black_mask.PNG');
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_mask.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/black_mask.PNG');
       }
 
-      if (isHarlequin) addLayer(imgStack, 'assets/images/greatdane/harlequin.PNG');
+      // Layer 4: Merle/Harlequin
+      if (isHarlequin) addLayer(imgStack, '../../assets/images/greatdane/harlequin.PNG');
       else if (isMerle) {
-        if (isBlue) addLayer(imgStack, 'assets/images/greatdane/blue_merle.PNG');
-        else addLayer(imgStack, 'assets/images/greatdane/merle.PNG');
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_merle.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/merle.PNG');
       }
 
-      if (isMantle) addLayer(imgStack, 'assets/images/greatdane/mantle.PNG');
-      addLayer(imgStack, 'assets/images/greatdane/lineart.PNG');
+      // Layer 5: Mantle
+      if (isMantle) addLayer(imgStack, '../../assets/images/greatdane/mantle.PNG');
+
+      // Layer 6: Final Lineart
+      addLayer(imgStack, '../../assets/images/greatdane/lineart.PNG');
 
       div.appendChild(imgStack);
     }
@@ -355,14 +335,13 @@ function addLayer(container, src) {
   const img = document.createElement('img');
   img.src = src;
   img.style.position = 'absolute';
-  img.style.top = '0'; 
+  img.style.top = '0';
   img.style.left = '0';
-  img.style.width = '100%'; // This ensures it fills the 80px box
-  img.style.height = '100%'; // This ensures it fills the 80px box
+  img.style.width = '100%';
+  img.style.height = '100%';
   img.style.pointerEvents = 'none';
   container.appendChild(img);
 }
-
 
 function cartesian(arr) {
   return arr.reduce((acc, cur) => {
@@ -405,9 +384,7 @@ function drawPie(items) {
       tooltip.style.left = `${e.clientX - rect.left + 10}px`;
       tooltip.style.top = `${e.clientY - rect.top + 10}px`;
       tooltip.textContent = `${found.name} (${(found.prob * 100).toFixed(1)}%)`;
-    } else {
-      tooltip.style.display = 'none';
-    }
+    } else tooltip.style.display = 'none';
   };
   canvas.onmouseleave = () => tooltip.style.display = 'none';
 }
@@ -445,3 +422,7 @@ function wireHelp() {
     btn.addEventListener('mouseleave', () => pop.style.display = 'none');
   });
 }
+// Part 4 ends in:
+//   btn.addEventListener('mouseleave', () => pop.style.display = 'none');
+//  });
+// }
