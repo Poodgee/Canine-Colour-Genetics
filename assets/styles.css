@@ -242,33 +242,15 @@ button {
   border-collapse: collapse;
   font-size: 0.85rem;
 }
-/* Split Layout for Predictions */
-.prediction-item {
-  display: flex; /* Creates the side-by-side split */
-  align-items: center;
-  gap: 20px;
-  padding: 15px;
-  margin-bottom: 12px;
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 12px;
-  border-left: 4px solid var(--accent);
-}
-
-.prediction-text {
-  display: flex;
-  flex-direction: column;
-  flex: 1; /* Takes up the remaining space */
-}
-
 /* Warning style for Double Merle */
-.warning-text {
+/*.warning-text {
   color: #ff7b7b;
   font-size: 0.8rem;
   font-weight: 700;
   margin-top: 4px;
   display: block;
 }
-
+*/
 #legend-table td,
 #legend-table th {
   padding: 8px;
@@ -350,17 +332,64 @@ button {
     grid-template-columns: 1fr;
   }
 
-  /* Stack on mobile */
+/* Updated Split Layout: Image on the RIGHT */
+.prediction-item {
+  display: flex; 
+  flex-direction: row-reverse; /* Moves image to the right */
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px;
+  margin-bottom: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  transition: background 0.3s;
 }
 
+/* Warning Backgrounds */
+.bg-lethal { background: rgba(255, 100, 100, 0.2) !important; border-left-color: #ff4d4d !important; }
+.bg-doublemerle { background: rgba(255, 255, 100, 0.1) !important; border-left-color: #ffff66 !important; }
+
+.prediction-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: left;
+}
+
+/* Image styling */
 .pheno-stack {
-  position: relative;
   width: 80px;
   height: 80px;
   flex-shrink: 0;
-  background: #0f0f12;
+  cursor: pointer;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--panel-border);
+}
+
+.pheno-stack img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Lightbox Style */
+.lightbox {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border: 3px solid var(--accent);
+  border-radius: 12px;
 }
 
