@@ -214,14 +214,6 @@ button {
   border-radius: 10px;
 }
 
-.prediction-item {
-  padding: 15px;
-  margin-bottom: 12px;
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 10px;
-  border-left: 4px solid var(--accent);
-}
-
 .prediction-title {
   display: flex;
   justify-content: space-between;
@@ -249,6 +241,32 @@ button {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+}
+/* Split Layout for Predictions */
+.prediction-item {
+  display: flex; /* Creates the side-by-side split */
+  align-items: center;
+  gap: 20px;
+  padding: 15px;
+  margin-bottom: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+}
+
+.prediction-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Takes up the remaining space */
+}
+
+/* Warning style for Double Merle */
+.warning-text {
+  color: #ff7b7b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 4px;
+  display: block;
 }
 
 #legend-table td,
@@ -345,3 +363,4 @@ button {
   overflow: hidden;
   border: 1px solid var(--panel-border);
 }
+
