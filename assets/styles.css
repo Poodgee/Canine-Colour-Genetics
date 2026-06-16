@@ -216,18 +216,18 @@ button {
 #predictions-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
 #predictions-area::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
 
-/* The Prediction Card (Split Layout) */
+/* Updated Split Layout: Image on the RIGHT */
 .prediction-item {
   display: flex; 
-  flex-direction: row;
+  flex-direction: row-reverse; /* This moves the image to the right side */
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
   padding: 15px;
   margin-bottom: 12px;
   background: rgba(15, 23, 42, 0.4);
   border-radius: 12px;
   border-left: 4px solid var(--accent);
-  transition: background 0.3s;
 }
 
 /* Background colors for warnings */
@@ -276,23 +276,20 @@ button {
    7. IMAGE STACK & LIGHTBOX
    ========================================================================== */
 .pheno-stack {
-  position: relative;
   width: 80px;
   height: 80px;
   flex-shrink: 0;
-  background: #0f0f12;
+  cursor: pointer;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--panel-border);
-  cursor: pointer;
+  background: #0f0f12;
 }
 
 .pheno-stack img {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  pointer-events: none;
 }
 
 .lightbox {
