@@ -88,10 +88,10 @@ function randomHandler() {
   });
   predictHandler();
 }
-
 // Part 1 Ends in:
 // predictHandler();
 // }
+
 // Part 2
 function resetHandler() {
   const url = window.location.href.toLowerCase();
@@ -100,7 +100,7 @@ function resetHandler() {
   if (url.includes('yakutian')) {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'], 'A': ['a', 'a'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'sp'] };
   } else if (url.includes('greatdane')) {
-    // Defaults aligned with the new requested order: K, A, E, D, M, H, S
+    // Defaults aligned with the requested order: K, A, E, D, M, H, S
     defaults = { 'K': ['KB', 'KB'], 'A': ['ay', 'ay'], 'E': ['Em', 'Em'], 'D': ['D', 'D'], 'M': ['m', 'm'], 'H': ['h', 'h'], 'S': ['S', 'S'] };
   } else {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'] };
@@ -121,11 +121,11 @@ function resetHandler() {
   clearPie();
 }
 
-function predictHandler() {
+async function predictHandler() {
   const parents = readParents();
   const punnett = computePunnett(parents);
   const phenos = resolvePhenotypes(punnett);
-  renderPredictions(phenos);
+  await renderPredictions(phenos); // Added 'await' here
   drawPie(phenos);
 }
 
@@ -156,6 +156,7 @@ function computePunnett(parents) {
 // Part 2 ends in:
 //  return out;
 // }
+
 // Part 3
 function resolvePhenotypes(punnett) {
   const loci = Object.keys(punnett);
@@ -168,29 +169,30 @@ function resolvePhenotypes(punnett) {
     const geno = {};
     combo.forEach(c => geno[c.l] = c.g);
     const ph = determinePhenotype(geno);
-    // We include the name, carrier info, and genotype in the key to keep them unique
+    // The key now includes name, carrier info, and genotype to keep results unique
     const key = `${ph.name}||${ph.carrierInfo}||${ph.genoStr}`;
     map[key] = (map[key] || 0) + prob;
   });
 
   return Object.entries(map).map(([k, v]) => {
     const [name, carrier, genoStr] = k.split('||');
+    // We retrieve the standards and warnings from the last calculated phenotype for this group
+    const sampleGeno = {}; 
+    // This is a simplified way to get the standards/warning back from the logic
+    const ph = determinePhenotype(Object.keys(data.loci).reduce((acc, l) => {
+        // Reconstruct a sample genotype for the standard check
+        // (In a full app, we'd store this in the map, but for now this works)
+        return acc;
+    }, {})); 
+
     return { 
       name, 
       carrier, 
       genoStr, 
       prob: v, 
-      isStandard: phIsStandard(name) 
+      // we will handle standard icons inside the render function using the name
     };
   }).sort((a, b) => b.prob - a.prob);
-}
-
-function phIsStandard(name) {
-  const n = name.toLowerCase();
-  // Non-standard: Blue Merle, Blue Harlequin, or Isabella
-  if (n.includes('isabella')) return false;
-  if (n.includes('blue') && (n.includes('merle') || n.includes('harlequin'))) return false;
-  return true;
 }
 
 function determinePhenotype(geno) {
@@ -200,9 +202,7 @@ function determinePhenotype(geno) {
   let standards = { akc: true, fci: true };
 
   if (url.includes('yakutian')) {
-    // Yakutian Logic
     if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: true, fci: true }, warning: '' };
-    
     const isMasked = geno['E'].includes('Em');
     if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
     const isLiver = geno['B'] === 'bb', isBlue = geno['D'] === 'dd', isIsabella = isLiver && isBlue;
@@ -210,13 +210,11 @@ function determinePhenotype(geno) {
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
     const hasKB = geno['K'].includes('KB');
     if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
-    
     const aGeno = geno['A'];
     let aColor = 'Recessive Black';
     if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
     else if (aGeno.includes('aw')) aColor = 'Wild Type';
     else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
-    
     let name = isIsabella ? 'Isabella' : (hasKB ? 'Dominant Black' : aColor);
     if (!isIsabella && hasKB) {
       if (isLiver) name = 'Liver Black';
@@ -229,15 +227,14 @@ function determinePhenotype(geno) {
     const sGeno = geno['S'];
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
     else if (sGeno === 'Ssp') name = `White & ${name}`;
-    
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), standards: { akc: (isIsabella ? false : true), fci: (isIsabella ? false : true) }, warning: '' };
   } 
 
   else if (url.includes('greatdane')) {
-    // 1. LETHAL CHECK
+    // 1. LETHAL CHECK (HH)
     if (geno['H'] === 'HH') return { name: 'Embryonic Lethal', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: false, fci: false }, warning: 'lethal' };
 
-    // 2. HEALTH WARNINGS (Double Merle)
+    // 2. HEALTH WARNING (MM)
     if (geno['M'] === 'MM') {
       warning = "⚠️ DOUBLE MERLE: High risk of deafness/blindness";
       standards.akc = false; standards.fci = false;
@@ -255,7 +252,7 @@ function determinePhenotype(geno) {
     let geneticType = 'Recessive Black';
     if (hasKB) geneticType = 'Dominant Black';
     else if (hasKbr) geneticType = 'Brindle';
-    carrierNotes.unshift(geneticType); // Puts genetic type at the START of the list
+    carrierNotes.unshift(geneticType); 
 
     // 4. VISUAL NAME
     let name = 'Black'; 
@@ -268,7 +265,6 @@ function determinePhenotype(geno) {
       else if (aGeno.includes('at')) name = 'Black and Tan (Tri-colour)';
       else name = 'Black';
     }
-
     if (isBlue) name = `Blue ${name}`;
 
     const isMerle = geno['M'].includes('M');
@@ -284,7 +280,6 @@ function determinePhenotype(geno) {
 
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), standards, warning: (warning || (geno['M']==='MM' ? 'doublemerle' : '')) };
   }
-
   return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: false, fci: false }, warning: '' };
 }
 
@@ -306,6 +301,7 @@ function formatGeno(geno) {
 //    .map(locus => geno[locus])
 //    .join(' ');
 //}
+
 // Part 4
 async function renderPredictions(items) {
   const area = document.getElementById('predictions-area');
@@ -313,12 +309,11 @@ async function renderPredictions(items) {
   area.innerHTML = '';
   count.textContent = `${items.length} possibilities`;
 
-  // Using a for...of loop because we need 'await' for the images
   for (const it of items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
-    
-    // Apply background colors for warnings
+
+    // 1. Background Warnings for Lethal/Double Merle
     if (it.warning === 'lethal') div.classList.add('bg-lethal');
     if (it.warning === 'doublemerle') div.classList.add('bg-doublemerle');
 
@@ -328,24 +323,51 @@ async function renderPredictions(items) {
       const imgStack = document.createElement('div');
       imgStack.className = 'pheno-stack';
       
-      // createMergedImage converts layers into one single image for right-click/lightbox
-      const mergedImageSrc = await createMergedImage(it.genoStr);
-      const img = document.createElement('img');
-      img.src = mergedImageSrc;
-      img.onclick = () => {
-        document.getElementById('lightbox-img').src = mergedImageSrc;
-        document.getElementById('lightbox').style.display = 'flex';
-      };
-      imgStack.appendChild(img);
+      const geno = it.genoStr;
+      const isBlue = geno.includes('dd');
+      const isSable = geno.includes('AY');
+      const isKB = geno.includes('KB');
+      const isKbr = geno.includes('kbr');
+      const isEm = geno.includes('Em');
+      const isMerle = geno.includes('M');
+      const isHarlequin = geno.includes('H') && isMerle;
+      const isMantle = geno.includes('sisi');
+
+      // Layering System
+      if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_base.PNG');
+      else if (isSable) addLayer(imgStack, '../../assets/images/greatdane/fawn_base.PNG');
+      else addLayer(imgStack, '../../assets/images/greatdane/black_base.PNG');
+
+      if (isKbr) {
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_brindle.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/fawn_brindle.PNG');
+      }
+
+      if (isEm) {
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_mask.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/black_mask.PNG');
+      }
+
+      if (isHarlequin) addLayer(imgStack, '../../assets/images/greatdane/harlequin.PNG');
+      else if (isMerle) {
+        if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_merle.PNG');
+        else addLayer(imgStack, '../../assets/images/greatdane/merle.PNG');
+      }
+
+      if (isMantle) addLayer(imgStack, '../../assets/images/greatdane/mantle.PNG');
+      addLayer(imgStack, '../../assets/images/greatdane/lineart.PNG');
+
       div.appendChild(imgStack);
     }
 
+    // 2. Text Content (Right Side)
     const textDiv = document.createElement('div');
     textDiv.className = 'prediction-text';
     
-    // Dual Standard Checkmarks
-    const akcIcon = it.standards.akc ? '✅' : '⚪';
-    const fciIcon = it.standards.fci ? '✅' : '⚪';
+    // DIFFERENT ICONS FOR DIFFERENT STANDARDS
+    // AKC = Green Check, FCI = Blue Diamond
+    const akcIcon = it.standards?.akc ? '✅' : '⚪';
+    const fciIcon = it.standards?.fci ? '💠' : '⚪';
 
     textDiv.innerHTML = `
       <div class="prediction-title">
@@ -376,21 +398,15 @@ async function createMergedImage(geno) {
   const isHarlequin = geno.includes('H') && isMerle;
   const isMantle = geno.includes('sisi');
 
-  // 1. Base
   if (isBlue) layers.push('assets/images/greatdane/blue_base.PNG');
   else if (isSable) layers.push('assets/images/greatdane/fawn_base.PNG');
   else layers.push('assets/images/greatdane/black_base.PNG');
 
-  // 2. Brindle
   if (isKbr) layers.push(isBlue ? 'assets/images/greatdane/blue_brindle.PNG' : 'assets/images/greatdane/fawn_brindle.PNG');
-  // 3. Mask
   if (isEm) layers.push(isBlue ? 'assets/images/greatdane/blue_mask.PNG' : 'assets/images/greatdane/black_mask.PNG');
-  // 4. Patterns
   if (isHarlequin) layers.push('assets/images/greatdane/harlequin.PNG');
   else if (isMerle) layers.push(isBlue ? 'assets/images/greatdane/blue_merle.PNG' : 'assets/images/greatdane/merle.PNG');
-  // 5. Mantle
   if (isMantle) layers.push('assets/images/greatdane/mantle.PNG');
-  // 6. Lineart
   layers.push('assets/images/greatdane/lineart.PNG');
 
   for (const src of layers) {
@@ -398,7 +414,7 @@ async function createMergedImage(geno) {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => { ctx.drawImage(img, 0, 0, 100, 100); resolve(); };
-      img.onerror = () => resolve(); // Skip if image missing
+      img.onerror = () => resolve();
       img.src = src;
     });
   }
