@@ -20,6 +20,7 @@ function buildParentsUI() {
   const parents = ['sire', 'dam'];
   const url = window.location.href.toLowerCase();
   
+  // STRICT ORDER: K, A, E, D, M, H, S (for Danes)
   let order = Object.keys(data.loci); 
   if (url.includes('greatdane')) {
     order = ['K', 'A', 'E', 'D', 'M', 'H', 'S']; 
@@ -60,11 +61,7 @@ function buildParentsUI() {
     });
   });
 }
-// Part 1 Ends in:
-//    });
-//   });
-// }
-// Part 2
+
 function buildLegend() {
   const table = document.getElementById('legend-table');
   if (!table) return;
@@ -91,6 +88,11 @@ function randomHandler() {
   });
   predictHandler();
 }
+
+// Part 1 Ends in:
+// predictHandler();
+// }
+// Part 2
 function resetHandler() {
   const url = window.location.href.toLowerCase();
   let defaults = {};
@@ -98,7 +100,8 @@ function resetHandler() {
   if (url.includes('yakutian')) {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'], 'A': ['a', 'a'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'sp'] };
   } else if (url.includes('greatdane')) {
-    defaults = { 'M': ['m', 'm'], 'H': ['h', 'h'], 'K': ['KB', 'KB'], 'E': ['Em', 'Em'], 'A': ['AY', 'AY'], 'D': ['D', 'D'], 'S': ['S', 'S'] };
+    // Defaults aligned with the new requested order: K, A, E, D, M, H, S
+    defaults = { 'K': ['KB', 'KB'], 'A': ['AY', 'AY'], 'E': ['Em', 'Em'], 'D': ['D', 'D'], 'M': ['m', 'm'], 'H': ['h', 'h'], 'S': ['S', 'S'] };
   } else {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'] };
   }
@@ -165,20 +168,28 @@ function resolvePhenotypes(punnett) {
     const geno = {};
     combo.forEach(c => geno[c.l] = c.g);
     const ph = determinePhenotype(geno);
+    // We include the name, carrier info, and genotype in the key to keep them unique
     const key = `${ph.name}||${ph.carrierInfo}||${ph.genoStr}`;
     map[key] = (map[key] || 0) + prob;
   });
 
   return Object.entries(map).map(([k, v]) => {
     const [name, carrier, genoStr] = k.split('||');
-    return { name, carrier, genoStr, prob: v, isStandard: phIsStandard(k) };
+    return { 
+      name, 
+      carrier, 
+      genoStr, 
+      prob: v, 
+      isStandard: phIsStandard(name) 
+    };
   }).sort((a, b) => b.prob - a.prob);
 }
 
-function phIsStandard(key) {
-  const name = key.split('||')[0].toLowerCase();
-  if (name.includes('isabella')) return false;
-  if (name.includes('blue merle') || name.includes('blue harlequin')) return false;
+function phIsStandard(name) {
+  const n = name.toLowerCase();
+  // Non-standard: Blue Merle, Blue Harlequin, or Isabella
+  if (n.includes('isabella')) return false;
+  if (n.includes('blue') && (n.includes('merle') || n.includes('harlequin'))) return false;
   return true;
 }
 
@@ -186,9 +197,11 @@ function determinePhenotype(geno) {
   const url = window.location.href.toLowerCase();
   let carrierNotes = [];
   let warning = "";
+  let isStandard = true;
 
   if (url.includes('yakutian')) {
     if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), warning: '' };
+    
     const isMasked = geno['E'].includes('Em');
     if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
     const isLiver = geno['B'] === 'bb', isBlue = geno['D'] === 'dd', isIsabella = isLiver && isBlue;
@@ -196,11 +209,13 @@ function determinePhenotype(geno) {
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
     const hasKB = geno['K'].includes('KB');
     if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
+    
     const aGeno = geno['A'];
     let aColor = 'Recessive Black';
     if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
     else if (aGeno.includes('aw')) aColor = 'Wild Type';
     else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
+    
     let name = isIsabella ? 'Isabella' : (hasKB ? 'Dominant Black' : aColor);
     if (!isIsabella && hasKB) {
       if (isLiver) name = 'Liver Black';
@@ -213,48 +228,82 @@ function determinePhenotype(geno) {
     const sGeno = geno['S'];
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
     else if (sGeno === 'Ssp') name = `White & ${name}`;
+    
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), warning: '' };
-  } else if (url.includes('greatdane')) {
+  } 
+
+  else if (url.includes('greatdane')) {
+    // 1. LETHAL CHECK: Homozygous Harlequin (HH)
+    if (geno['H'] === 'HH') {
+      return { name: 'Embryonic Lethal', carrierInfo: '', genoStr: formatGeno(geno), warning: 'Lethal genotype' };
+    }
+
+    // 2. HEALTH WARNING: Double Merle (MM)
+    if (geno['M'] === 'MM') {
+      warning = "⚠️ DOUBLE MERLE: High risk of deafness and blindness.";
+    }
+
     const isBlue = geno['D'] === 'dd';
     const hasKB = geno['K'].includes('KB');
     const hasKbr = geno['K'].includes('kbr');
+    
+    // Carrier / Subscript info
     if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
     if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
     if (geno['S'] === 'Ssi') carrierNotes.push('Mantle Carrier');
-    if (geno['M'] === 'MM') warning = "⚠️ DOUBLE MERLE: High risk of deafness/blindness";
-
-    let name = 'Recessive Black';
-    const aGeno = geno['A'];
-    if (aGeno.includes('AY')) name = 'Sable/Fawn';
-    else if (aGeno.includes('aw')) name = 'Wild Type';
-    else if (aGeno.includes('at')) name = 'Black and Tan (Tri-colour)';
     
-    if (hasKB) {
-      name = 'Black';
-      carrierNotes.push('Dominant Black');
-    } else if (hasKbr) {
-      name = (aGeno.includes('AY')) ? 'Fawn Brindle' : 'Brindle';
+    // Base Genetic Type (Moved to subscript)
+    let geneticType = 'Recessive Black';
+    if (hasKB) geneticType = 'Dominant Black';
+    else if (hasKbr) geneticType = 'Brindle';
+    carrierNotes.push(geneticType);
+
+    // 3. VISUAL NAME DETERMINATION
+    let visualName = 'Black'; // Default
+    const aGeno = geno['A'];
+    if (hasKbr) {
+      visualName = (aGeno.includes('AY')) ? 'Fawn Brindle' : 'Brindle';
+    } else if (!hasKB) {
+      if (aGeno.includes('AY')) visualName = 'Sable/Fawn';
+      else if (aGeno.includes('aw')) visualName = 'Wild Type';
+      else if (aGeno.includes('at')) visualName = 'Black and Tan (Tri-colour)';
+      else visualName = 'Black';
     }
 
-    if (isBlue) name = `Blue ${name}`;
+    if (isBlue) visualName = `Blue ${visualName}`;
+
+    // Patterns
     const isMerle = geno['M'].includes('M');
     const isHarlequin = geno['H'].includes('H') && isMerle;
-    if (isHarlequin) name = `Harlequin ${name}`;
-    else if (isMerle) name = `Merle ${name}`;
-    if (geno['S'] === 'sisi') name = `Mantle ${name}`;
+    if (isHarlequin) visualName = `Harlequin ${visualName}`;
+    else if (isMerle) visualName = `Merle ${visualName}`;
 
-    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), warning };
+    if (geno['S'] === 'sisi') visualName = `Mantle ${visualName}`;
+
+    return { name: visualName, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), warning };
   }
+
   return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), warning: '' };
 }
 
 function formatGeno(geno) {
-  return Object.values(geno).join(' ');
+  const url = window.location.href.toLowerCase();
+  let order = Object.keys(geno);
+  if (url.includes('greatdane')) order = ['K', 'A', 'E', 'D', 'M', 'H', 'S'];
+  else if (url.includes('yakutian')) order = ['K', 'A', 'E', 'B', 'D', 'S'];
+  
+  return order
+    .filter(locus => geno[locus])
+    .map(locus => geno[locus])
+    .join(' ');
 }
+
 // Part 3 ends in:
-// function formatGeno(geno) {
-//  return Object.values(geno).join(' ');
-// }
+//  return order
+//    .filter(locus => geno[locus])
+//    .map(locus => geno[locus])
+//    .join(' ');
+//}
 // Part 4
 function renderPredictions(items) {
   const area = document.getElementById('predictions-area');
@@ -266,8 +315,9 @@ function renderPredictions(items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
 
-    // --- LAYERED IMAGE STACK ---
+    // --- IMAGE STACK SYSTEM (Left Side) ---
     const currentPath = window.location.pathname.toLowerCase();
+
     if (currentPath.includes('greatdane')) {
       const imgStack = document.createElement('div');
       imgStack.className = 'pheno-stack';
@@ -282,7 +332,7 @@ function renderPredictions(items) {
       const isHarlequin = geno.includes('H') && isMerle;
       const isMantle = geno.includes('sisi');
 
-      // Layer 1: Base
+      // Layer 1: Base (Paths corrected to ../../)
       if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_base.PNG');
       else if (isSable) addLayer(imgStack, '../../assets/images/greatdane/fawn_base.PNG');
       else addLayer(imgStack, '../../assets/images/greatdane/black_base.PNG');
@@ -315,6 +365,7 @@ function renderPredictions(items) {
       div.appendChild(imgStack);
     }
 
+    // --- TEXT CONTENT (Right Side) ---
     const textDiv = document.createElement('div');
     textDiv.className = 'prediction-text';
     textDiv.innerHTML = `
@@ -339,7 +390,7 @@ function addLayer(container, src) {
   img.style.left = '0';
   img.style.width = '100%';
   img.style.height = '100%';
-  img.style.pointerEvents = 'none';
+  img.style.pointerEvents = 'auto'; // Changed to auto to allow right-click "Open image in new tab"
   container.appendChild(img);
 }
 
@@ -422,6 +473,7 @@ function wireHelp() {
     btn.addEventListener('mouseleave', () => pop.style.display = 'none');
   });
 }
+
 // Part 4 ends in:
 //   btn.addEventListener('mouseleave', () => pop.style.display = 'none');
 //  });
