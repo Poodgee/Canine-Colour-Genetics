@@ -101,7 +101,7 @@ function resetHandler() {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'], 'A': ['a', 'a'], 'B': ['B', 'B'], 'D': ['D', 'D'], 'S': ['S', 'sp'] };
   } else if (url.includes('greatdane')) {
     // Defaults aligned with the new requested order: K, A, E, D, M, H, S
-    defaults = { 'K': ['KB', 'KB'], 'A': ['AY', 'AY'], 'E': ['Em', 'Em'], 'D': ['D', 'D'], 'M': ['m', 'm'], 'H': ['h', 'h'], 'S': ['S', 'S'] };
+    defaults = { 'K': ['KB', 'KB'], 'A': ['ay', 'ay'], 'E': ['Em', 'Em'], 'D': ['D', 'D'], 'M': ['m', 'm'], 'H': ['h', 'h'], 'S': ['S', 'S'] };
   } else {
     defaults = { 'K': ['ky', 'ky'], 'E': ['E', 'E'] };
   }
