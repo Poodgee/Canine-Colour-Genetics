@@ -201,20 +201,36 @@ function determinePhenotype(geno) {
   let warning = "";
   let standards = { akc: true, fci: true };
 
+  // HELPER: Prevents the "undefined" crash. 
+  // If the locus doesn't exist in this breed, it returns an empty string instead of crashing.
+  const safeGet = (locus) => (geno[locus] ? geno[locus] : "");
+
   if (url.includes('yakutian')) {
-    if (geno['E'] === 'ee') return { name: 'Recessive Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: true, fci: true }, warning: '' };
-    const isMasked = geno['E'].includes('Em');
-    if (!isMasked && geno['E'] === 'Ee') carrierNotes.push('Mask Carrier');
-    const isLiver = geno['B'] === 'bb', isBlue = geno['D'] === 'dd', isIsabella = isLiver && isBlue;
-    if (geno['B'] === 'Bb') carrierNotes.push('Liver Carrier');
-    if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
-    const hasKB = geno['K'].includes('KB');
-    if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
-    const aGeno = geno['A'];
+    const eGeno = safeGet('E');
+    if (eGeno === 'ee') return { name: 'Recessive, Yellow/Red', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: true, fci: true }, warning: '' };
+    
+    const isMasked = eGeno.includes('Em');
+    if (!isMasked && eGeno === 'Ee') carrierNotes.push('Mask Carrier');
+    
+    const bGeno = safeGet('B');
+    const dGeno = safeGet('D');
+    const isLiver = bGeno === 'bb';
+    const isBlue = dGeno === 'dd';
+    const isIsabella = isLiver && isBlue;
+    
+    if (bGeno === 'Bb') carrierNotes.push('Liver Carrier');
+    if (dGeno === 'Dd') carrierNotes.push('Blue Carrier');
+    
+    const kGeno = safeGet('K');
+    const hasKB = kGeno.includes('KB');
+    if (kGeno === 'KBky') carrierNotes.push('Non-black Carrier');
+    
+    const aGeno = safeGet('A');
     let aColor = 'Recessive Black';
     if (aGeno.includes('ay')) aColor = 'Sable/Fawn';
     else if (aGeno.includes('aw')) aColor = 'Wild Type';
     else if (aGeno.includes('at')) aColor = 'Black and Tan (Tri-colour)';
+    
     let name = isIsabella ? 'Isabella' : (hasKB ? 'Dominant Black' : aColor);
     if (!isIsabella && hasKB) {
       if (isLiver) name = 'Liver Black';
@@ -224,39 +240,48 @@ function determinePhenotype(geno) {
       if (isBlue) name = `Blue ${name}`;
     }
     if (isMasked && (aGeno.includes('ay') || aGeno.includes('aw') || aGeno.includes('at'))) name += ' (with Mask)';
-    const sGeno = geno['S'];
+    
+    const sGeno = safeGet('S');
     if (sGeno === 'spsp') name = `Intensive White & ${name}`;
-    else if (sGeno === 'Ssp') name = `White & ${name}`;
+    else, if (sGeno === 'Ssp') name = `White & ${name}`;
+    
     return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), standards: { akc: (isIsabella ? false : true), fci: (isIsabella ? false : true) }, warning: '' };
   } 
 
   else if (url.includes('greatdane')) {
-    // 1. LETHAL CHECK (HH)
-    if (geno['H'] === 'HH') return { name: 'Embryonic Lethal', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: false, fci: false }, warning: 'lethal' };
+    const mGeno = safeGet('M');
+    const hGeno = safeGet('H');
+    const kGeno = safeGet('K');
+    const aGeno = safeGet('A');
+    const eGeno = safeGet('E');
+    const dGeno = safeGet('D');
+    const sGeno = safeGet('S');
 
-    // 2. HEALTH WARNING (MM)
-    if (geno['M'] === 'MM') {
+    // 1. LETHAL CHECK
+    if (hGeno === 'HH') return { name: 'Embryonic Lethal', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: false, fci: false }, warning: 'lethal' };
+
+    // 2. HEALTH WARNINGS
+    if (mGeno === 'MM') {
       warning = "⚠️ DOUBLE MERLE: High risk of deafness/blindness";
       standards.akc = false; standards.fci = false;
     }
 
-    const isBlue = geno['D'] === 'dd';
-    const hasKB = geno['K'].includes('KB');
-    const hasKbr = geno['K'].includes('kbr');
+    const isBlue = dGeno === 'dd';
+    const hasKB = kGeno.includes('KB');
+    const hasKbr = kGeno.includes('kbr');
     
-    if (geno['D'] === 'Dd') carrierNotes.push('Blue Carrier');
-    if (geno['K'] === 'KBky') carrierNotes.push('Non-black Carrier');
-    if (geno['S'] === 'Ssi') carrierNotes.push('Mantle Carrier');
+    if (dGeno === 'Dd') carrierNotes.push('Blue Carrier');
+    if (kGeno === 'KBky') carrierNotes.push('Non-black Carrier');
+    if (sGeno === 'Ssi') carrierNotes.push('Mantle Carrier');
 
     // 3. SUBSCRIPT: Genetic type first
     let geneticType = 'Recessive Black';
     if (hasKB) geneticType = 'Dominant Black';
     else if (hasKbr) geneticType = 'Brindle';
-    carrierNotes.unshift(geneticType); 
+    carrierNotes.unshift(geneticType);
 
     // 4. VISUAL NAME
     let name = 'Black'; 
-    const aGeno = geno['A'];
     if (hasKbr) {
       name = (aGeno.includes('AY')) ? 'Fawn Brindle' : 'Brindle';
     } else if (!hasKB) {
@@ -265,21 +290,22 @@ function determinePhenotype(geno) {
       else if (aGeno.includes('at')) name = 'Black and Tan (Tri-colour)';
       else name = 'Black';
     }
+
     if (isBlue) name = `Blue ${name}`;
 
-    const isMerle = geno['M'].includes('M');
-    const isHarlequin = geno['H'].includes('H') && isMerle;
+    const isMerle = mGeno.includes('M');
+    const isHarlequin = hGeno.includes('H') && isMerle;
     if (isHarlequin) name = `Harlequin ${name}`;
     else if (isMerle) name = `Merle ${name}`;
-    if (geno['S'] === 'sisi') name = `Mantle ${name}`;
+    if (sGeno === 'sisi') name = `Mantle ${name}`;
 
-    // Standard Check
     if (isBlue && (isMerle || isHarlequin)) {
       standards.akc = false; standards.fci = false;
     }
 
-    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), standards, warning: (warning || (geno['M']==='MM' ? 'doublemerle' : '')) };
+    return { name, carrierInfo: carrierNotes.join(', '), genoStr: formatGeno(geno), standards, warning: (warning || (mGeno === 'MM' ? 'doublemerle' : '')) };
   }
+
   return { name: 'Unknown', carrierInfo: '', genoStr: formatGeno(geno), standards: { akc: false, fci: false }, warning: '' };
 }
 
