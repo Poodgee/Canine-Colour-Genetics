@@ -101,6 +101,9 @@ function resetHandler() {
 }
 
 async function predictHandler() {
+  // Close any open popovers first to fix the "grey overlay" bug
+  document.getElementById('popover').style.display = 'none';
+  
   const parents = readParents();
   const punnett = computePunnett(parents);
   const phenos = resolvePhenotypes(punnett);
@@ -248,32 +251,43 @@ async function renderPredictions(items) {
   const count = document.getElementById('possibilities-count');
   area.innerHTML = '';
   count.textContent = `${items.length} possibilities`;
+
   for (const it of items) {
     const div = document.createElement('div');
     div.className = 'prediction-item';
+    
+    // Apply background colors for warnings
     if (it.warning === 'lethal') div.classList.add('bg-lethal');
     if (it.warning === 'doublemerle') div.classList.add('bg-doublemerle');
+
     const currentPath = window.location.pathname.toLowerCase();
+
     if (currentPath.includes('greatdane')) {
       const imgStack = document.createElement('div');
       imgStack.className = 'pheno-stack';
-      const geno = it.genoStr;
-      const isBlue = geno.includes('dd'), isSable = geno.includes('AY'), isKB = geno.includes('KB'), isKbr = geno.includes('kbr'), isEm = geno.includes('Em'), isMerle = geno.includes('M'), isHarlequin = geno.includes('H') && isMerle, isMantle = geno.includes('sisi');
-      if (isBlue) addLayer(imgStack, '../../assets/images/greatdane/blue_base.PNG');
-      else if (isSable) addLayer(imgStack, '../../assets/images/greatdane/fawn_base.PNG');
-      else addLayer(imgStack, '../../assets/images/greatdane/black_base.PNG');
-      if (isKbr) addLayer(imgStack, isBlue ? '../../assets/images/greatdane/blue_brindle.PNG' : '../../assets/images/greatdane/fawn_brindle.PNG');
-      if (isEm) addLayer(imgStack, isBlue ? '../../assets/images/greatdane/blue_mask.PNG' : '../../assets/images/greatdane/black_mask.PNG');
-      if (isHarlequin) addLayer(imgStack, '../../assets/images/greatdane/harlequin.PNG');
-      else if (isMerle) addLayer(imgStack, isBlue ? '../../assets/images/greatdane/blue_merle.PNG' : '../../assets/images/greatdane/merle.PNG');
-      if (isMantle) addLayer(imgStack, '../../assets/images/greatdane/mantle.PNG');
-      addLayer(imgStack, '../../assets/images/greatdane/lineart.PNG');
+      
+      // This is the a la carte "brain" that handles all the layers
+      const mergedImageSrc = await createMergedImage(it.genoStr);
+      
+      const img = document.createElement('img');
+      img.src = mergedImageSrc;
+      
+      // Lightbox functionality
+      img.onclick = () => {
+        document.getElementById('lightbox-img').src = mergedImageSrc;
+        document.getElementById('lightbox').style.display = 'flex';
+      };
+      
+      imgStack.appendChild(img);
       div.appendChild(imgStack);
     }
+
     const textDiv = document.createElement('div');
     textDiv.className = 'prediction-text';
+    
     const akcIcon = it.standards?.akc ? '✅' : '⚪';
     const fciIcon = it.standards?.fci ? '💠' : '⚪';
+
     textDiv.innerHTML = `
       <div class="prediction-title">
         <span>${it.name} — ${(it.prob * 100).toFixed(1)}% ${akcIcon} ${fciIcon}</span>
@@ -282,6 +296,27 @@ async function renderPredictions(items) {
       <div class="prediction-genotype">${it.genoStr}</div>
       ${it.warning ? `<span class="warning-text">${it.warning}</span>` : ''}
     `;
+
+    div.appendChild(textDiv);
+    area.appendChild(div);
+  }
+}
+
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'prediction-text';
+    const akcIcon = it.standards?.akc ? '✅' : '⚪';
+    const fciIcon = it.standards?.fci ? '💠' : '⚪';
+
+    textDiv.innerHTML = `
+      <div class="prediction-title">
+        <span>${it.name} — ${(it.prob * 100).toFixed(1)}% ${akcIcon} ${fciIcon}</span>
+      </div>
+      ${it.carrier ? `<span class="carrier-text">${it.carrier}</span>` : ''}
+      <div class="prediction-genotype">${it.genoStr}</div>
+      ${it.warning ? `<span class="warning-text">${it.warning}</span>` : ''}
+    `;
+
     div.appendChild(textDiv);
     area.appendChild(div);
   }
@@ -291,28 +326,43 @@ async function createMergedImage(geno) {
   const canvas = document.createElement('canvas');
   canvas.width = 100; canvas.height = 100;
   const ctx = canvas.getContext('2d');
+
   const layers = [];
-  const isBlue = geno.includes('dd'), isSable = geno.includes('AY'), isKB = geno.includes('KB'), isKbr = geno.includes('kbr'), isEm = geno.includes('Em'), isMerle = geno.includes('M'), isHarlequin = geno.includes('H') && isMerle, isMantle = geno.includes('sisi');
-  if (isBlue) layers.push('assets/images/greatdane/blue_base.PNG');
-  else if (isSable) layers.push('assets/images/greatdane/fawn_base.PNG');
-  else layers.push('assets/images/greatdane/black_base.PNG');
-  if (isKbr) layers.push(isBlue ? 'assets/images/greatdane/blue_brindle.PNG' : 'assets/images/greatdane/fawn_brindle.PNG');
-  if (isEm) layers.push(isBlue ? 'assets/images/greatdane/blue_mask.PNG' : 'assets/images/greatdane/black_mask.PNG');
-  if (isHarlequin) layers.push('assets/images/greatdane/harlequin.PNG');
-  else if (isMerle) layers.push(isBlue ? 'assets/images/greatdane/blue_merle.PNG' : 'assets/images/greatdane/merle.PNG');
-  if (isMantle) layers.push('assets/images/greatdane/mantle.PNG');
-  layers.push('assets/images/greatdane/lineart.PNG');
+  const isBlue = geno.includes('dd');
+  const isSable = geno.includes('AY') || geno.includes('ay');
+  const isKB = geno.includes('KB');
+  const isKbr = geno.includes('kbr');
+  const isEm = geno.includes('Em');
+  const isMerle = geno.includes('M');
+  const isHarlequin = geno.includes('H') && isMerle;
+  const isMantle = geno.includes('sisi');
+
+  // ABSOLUTE PATHS: /RepoName/assets/images/...
+  const pathBase = '/Canine-Colour-Genetics/assets/images/greatdane/';
+
+  if (isBlue) layers.push(pathBase + 'blue_base.PNG');
+  else if (isSable) layers.push(pathBase + 'fawn_base.PNG');
+  else layers.push(pathBase + 'black_base.PNG');
+
+  if (isKbr) layers.push(isBlue ? pathBase + 'blue_brindle.PNG' : pathBase + 'fawn_brindle.PNG');
+  if (isEm) layers.push(isBlue ? pathBase + 'blue_mask.PNG' : pathBase + 'black_mask.PNG');
+  if (isHarlequin) layers.push(pathBase + 'harlequin.PNG');
+  else if (isMerle) layers.push(isBlue ? pathBase + 'blue_merle.PNG' : pathBase + 'merle.PNG');
+  if (isMantle) layers.push(pathBase + 'mantle.PNG');
+  layers.push(pathBase + 'lineart.PNG');
+
   for (const src of layers) {
     await new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => { ctx.drawImage(img, 0, 0, 100, 100); resolve(); };
-      img.onerror = () => resolve();
+      img.onerror = () => { console.log("Failed to load:", src); resolve(); };
       img.src = src;
     });
   }
   return canvas.toDataURL('image/png');
 }
+
 
 function addLayer(container, src) {
   const img = document.createElement('img');
