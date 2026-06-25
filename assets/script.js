@@ -189,19 +189,27 @@ function resolvePhenotypes(punnett) {
     const geno = {};
     combo.forEach((c) => (geno[c.l] = c.g));
     const ph = determinePhenotype(geno);
-    const key = `${ph.name}||${ph.carrierInfo}||${ph.genoStr}`;
+
+    // IMPORTANT: We now include the standards in the key so they are preserved
+    const standardsKey = `${ph.standards.akc}-${ph.standards.fci}`;
+    const key = `${ph.name}||${ph.carrierInfo}||${ph.genoStr}||${standardsKey}`;
     map[key] = (map[key] || 0) + prob;
   });
 
   return Object.entries(map)
     .map(([k, v]) => {
-      const [name, carrier, genoStr] = k.split("||");
+      const [name, carrier, genoStr, stdKey] = k.split("||");
+      const [akc, fci] = stdKey.split("-");
       return {
         name,
         carrier,
         genoStr,
         prob: v,
-        isStandard: phIsStandard(name),
+        // Convert the strings 'true'/'false' back into actual booleans
+        standards: {
+          akc: stdKey.startsWith("true"),
+          fci: stdKey.endsWith("true"),
+        },
       };
     })
     .sort((a, b) => b.prob - a.prob);
@@ -391,7 +399,6 @@ async function renderPredictions(items) {
   for (const it of items) {
     const div = document.createElement("div");
     div.className = "prediction-item";
-
     if (it.warning === "lethal") div.classList.add("bg-lethal");
     if (it.warning === "doublemerle") div.classList.add("bg-doublemerle");
 
@@ -400,7 +407,6 @@ async function renderPredictions(items) {
     if (currentPath.includes("greatdane")) {
       const imgStack = document.createElement("div");
       imgStack.className = "pheno-stack";
-
       const mergedImageSrc = await createMergedImage(it.genoStr);
       const img = document.createElement("img");
       img.src = mergedImageSrc;
@@ -415,9 +421,9 @@ async function renderPredictions(items) {
     const textDiv = document.createElement("div");
     textDiv.className = "prediction-text";
 
-    //If not standard, return an empty string instead of a white circle
-    const akcIcon = it.standards?.akc ? "✅" : "";
-    const fciIcon = it.standards?.fci ? "💠" : "";
+    // FIXED: Explicitly check the standards object
+    const akcIcon = it.standards && it.standards.akc ? "✅" : "";
+    const fciIcon = it.standards && it.standards.fci ? "💠" : "";
 
     textDiv.innerHTML = `
       <div class="prediction-title">
