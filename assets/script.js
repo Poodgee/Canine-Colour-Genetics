@@ -412,7 +412,7 @@ async function renderPredictions(items) {
 async function createMergedImage(geno) {
   const canvas = document.createElement("canvas");
   canvas.width = 1000;
-  canvas.height = 1000; // HIGH RES for Lightbox
+  canvas.height = 1000;
   const ctx = canvas.getContext("2d");
 
   const layers = [];
@@ -425,31 +425,39 @@ async function createMergedImage(geno) {
   const isHarlequin = geno.includes("H") && isMerle;
   const isMantle = geno.includes("sisi");
 
-  if (isBlue) layers.push("assets/images/greatdane/blue_base.PNG");
-  else if (isSable) layers.push("assets/images/greatdane/fawn_base.PNG");
-  else layers.push("assets/images/greatdane/black_base.PNG");
+  // Use the absolute root path to avoid 404s regardless of which page we are on
+  const pathBase = "/Canine-Colour-Genetics/assets/images/greatdane/";
 
-  if (isKbr)
+  // Layer 1: Base
+  if (isBlue) layers.push(pathBase + "blue_base.PNG");
+  else if (isSable) layers.push(pathBase + "fawn_base.PNG");
+  else layers.push(pathBase + "black_base.PNG");
+
+  // Layer 2: Brindle
+  if (isKbr) {
     layers.push(
-      isBlue
-        ? "assets/images/greatdane/blue_brindle.PNG"
-        : "assets/images/greatdane/fawn_brindle.PNG",
+      isBlue ? pathBase + "blue_brindle.PNG" : pathBase + "fawn_brindle.PNG",
     );
-  if (isEm)
+  }
+
+  // Layer 3: Mask
+  if (isEm) {
     layers.push(
-      isBlue
-        ? "assets/images/greatdane/blue_mask.PNG"
-        : "assets/images/greatdane/black_mask.PNG",
+      isBlue ? pathBase + "blue_mask.PNG" : pathBase + "black_mask.PNG",
     );
-  if (isHarlequin) layers.push("assets/images/greatdane/harlequin.PNG");
-  else if (isMerle)
-    layers.push(
-      isBlue
-        ? "assets/images/greatdane/blue_merle.PNG"
-        : "assets/images/greatdane/merle.PNG",
-    );
-  if (isMantle) layers.push("assets/images/greatdane/mantle.PNG");
-  layers.push("assets/images/greatdane/lineart.PNG");
+  }
+
+  // Layer 4: Merle/Harlequin
+  if (isHarlequin) layers.push(pathBase + "harlequin.PNG");
+  else if (isMerle) {
+    layers.push(isBlue ? pathBase + "blue_merle.PNG" : pathBase + "merle.PNG");
+  }
+
+  // Layer 5: Mantle
+  if (isMantle) layers.push(pathBase + "mantle.PNG");
+
+  // Layer 6: Lineart
+  layers.push(pathBase + "lineart.PNG");
 
   for (const src of layers) {
     await new Promise((resolve) => {
@@ -459,7 +467,10 @@ async function createMergedImage(geno) {
         ctx.drawImage(img, 0, 0, 1000, 1000);
         resolve();
       };
-      img.onerror = () => resolve();
+      img.onerror = () => {
+        console.error("Failed to load image layer:", src);
+        resolve(); // Skip failed images so the script doesn't hang
+      };
       img.src = src;
     });
   }
