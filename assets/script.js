@@ -221,8 +221,7 @@ function determinePhenotype(geno) {
   let standards = { akc: true, fci: true };
 
   if (url.includes("yakutian")) {
-    const eGeno = safeGet(geno, "E");
-    if (eGeno === "ee")
+    if (geno["E"] === "ee")
       return {
         name: "Recessive Yellow/Red",
         carrierInfo: "",
@@ -230,23 +229,21 @@ function determinePhenotype(geno) {
         standards: { akc: true, fci: true },
         warning: "",
       };
-    const isMasked = eGeno.includes("Em");
-    if (!isMasked && eGeno === "Ee") carrierNotes.push("Mask Carrier");
-    const bGeno = safeGet(geno, "B"),
-      dGeno = safeGet(geno, "D"),
-      isLiver = bGeno === "bb",
-      isBlue = dGeno === "dd",
+    const isMasked = geno["E"].includes("Em");
+    if (!isMasked && geno["E"] === "Ee") carrierNotes.push("Mask Carrier");
+    const isLiver = geno["B"] === "bb",
+      isBlue = geno["D"] === "dd",
       isIsabella = isLiver && isBlue;
-    if (bGeno === "Bb") carrierNotes.push("Liver Carrier");
-    if (dGeno === "Dd") carrierNotes.push("Blue Carrier");
-    const kGeno = safeGet(geno, "K");
-    const hasKB = kGeno.includes("KB");
-    if (kGeno === "KBky") carrierNotes.push("Non-black Carrier");
+    if (geno["B"] === "Bb") carrierNotes.push("Liver Carrier");
+    if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
+    const hasKB = geno["K"].includes("KB");
+    if (geno["K"] === "KBky") carrierNotes.push("Non-black Carrier");
     const aGeno = safeGet(geno, "A");
     let aColor = "Recessive Black";
-    if (aGeno.includes("ay")) aColor = "Sable/Fawn";
-    else if (aGeno.includes("aw")) aColor = "Wild Type";
-    else if (aGeno.includes("at")) aColor = "Black and Tan (Tri-colour)";
+    if (aGeno.toLowerCase().includes("ay")) aColor = "Sable/Fawn";
+    else if (aGeno.toLowerCase().includes("aw")) aColor = "Wild Type";
+    else if (aGeno.toLowerCase().includes("at"))
+      aColor = "Black and Tan (Tri-colour)";
     let name = isIsabella ? "Isabella" : hasKB ? "Dominant Black" : aColor;
     if (!isIsabella && hasKB) {
       if (isLiver) name = "Liver Black";
@@ -257,7 +254,9 @@ function determinePhenotype(geno) {
     }
     if (
       isMasked &&
-      (aGeno.includes("ay") || aGeno.includes("aw") || aGeno.includes("at"))
+      (aGeno.toLowerCase().includes("ay") ||
+        aGeno.toLowerCase().includes("aw") ||
+        aGeno.toLowerCase().includes("at"))
     )
       name += " (with Mask)";
     const sGeno = safeGet(geno, "S");
@@ -299,30 +298,31 @@ function determinePhenotype(geno) {
     if (dGeno === "Dd") carrierNotes.push("Blue Carrier");
     if (kGeno === "KBky") carrierNotes.push("Non-black Carrier");
     if (sGeno === "Ssi") carrierNotes.push("Mantle Carrier");
+
     let geneticType = "Recessive Black";
     if (hasKB) geneticType = "Dominant Black";
     else if (hasKbr) geneticType = "Brindle";
     carrierNotes.unshift(geneticType);
+
     let name = "Black";
-    if (hasKbr) name = aGeno.includes("AY") ? "Fawn Brindle" : "Brindle";
-    else if (!hasKB) {
-      if (aGeno.includes("AY")) name = "Sable/Fawn";
-      else if (aGeno.includes("aw")) name = "Wild Type";
-      else if (aGeno.includes("at")) name = "Black and Tan (Tri-colour)";
+    // FIXED: Case-insensitive check for 'ay'
+    if (hasKbr) {
+      name = aGeno.toLowerCase().includes("ay") ? "Fawn Brindle" : "Brindle";
+    } else if (!hasKB) {
+      if (aGeno.toLowerCase().includes("ay")) name = "Sable/Fawn";
+      else if (aGeno.toLowerCase().includes("aw")) name = "Wild Type";
+      else if (aGeno.toLowerCase().includes("at"))
+        name = "Black and Tan (Tri-colour)";
       else name = "Black";
     }
-    if (isBlue)
-      name = `Blue ${
-        //Casing check
-        aGeno.includes("AY") ? "Fawn" : hasKB ? "Black" : "Black"
-      }`;
-    // Fix the Blue name logic to be simpler
-    if (isBlue) name = `Blue ${name.replace("Blue ", "")}`;
+
+    if (isBlue) name = `Blue ${name}`;
     const isMerle = mGeno.includes("M"),
       isHarlequin = hGeno.includes("H") && isMerle;
     if (isHarlequin) name = `Harlequin ${name}`;
     else if (isMerle) name = `Merle ${name}`;
     if (sGeno === "sisi") name = `Mantle ${name}`;
+
     return {
       name,
       carrierInfo: carrierNotes.join(", "),
@@ -360,8 +360,6 @@ async function renderPredictions(items) {
   for (const it of items) {
     const div = document.createElement("div");
     div.className = "prediction-item";
-
-    // Apply background colors for warnings
     if (it.warning === "lethal") div.classList.add("bg-lethal");
     if (it.warning === "doublemerle") div.classList.add("bg-doublemerle");
 
@@ -371,25 +369,29 @@ async function renderPredictions(items) {
       const imgStack = document.createElement("div");
       imgStack.className = "pheno-stack";
 
-      // This is the a la carte "brain" that handles all the layers
-      const mergedImageSrc = await createMergedImage(it.genoStr);
+      const geno = it.genoStr;
+      const isBlue = geno.includes("dd");
+      const isSable = geno.toLowerCase().includes("ay"); // CASE-INSENSITIVE
+      const isKB = geno.includes("KB");
+      const isKbr = geno.includes("kbr");
+      const isEm = geno.includes("Em");
+      const isMerle = geno.includes("M");
+      const isHarlequin = geno.includes("H") && isMerle;
+      const isMantle = geno.includes("sisi");
 
+      const mergedImageSrc = await createMergedImage(geno);
       const img = document.createElement("img");
       img.src = mergedImageSrc;
-
-      // Lightbox functionality
       img.onclick = () => {
         document.getElementById("lightbox-img").src = mergedImageSrc;
         document.getElementById("lightbox").style.display = "flex";
       };
-
       imgStack.appendChild(img);
       div.appendChild(imgStack);
     }
 
     const textDiv = document.createElement("div");
     textDiv.className = "prediction-text";
-
     const akcIcon = it.standards?.akc ? "✅" : "⚪";
     const fciIcon = it.standards?.fci ? "💠" : "⚪";
 
@@ -409,13 +411,13 @@ async function renderPredictions(items) {
 
 async function createMergedImage(geno) {
   const canvas = document.createElement("canvas");
-  canvas.width = 100;
-  canvas.height = 100;
+  canvas.width = 1000;
+  canvas.height = 1000; // HIGH RES for Lightbox
   const ctx = canvas.getContext("2d");
 
   const layers = [];
   const isBlue = geno.includes("dd");
-  const isSable = geno.includes("AY") || geno.includes("ay");
+  const isSable = geno.toLowerCase().includes("ay");
   const isKB = geno.includes("KB");
   const isKbr = geno.includes("kbr");
   const isEm = geno.includes("Em");
@@ -423,39 +425,41 @@ async function createMergedImage(geno) {
   const isHarlequin = geno.includes("H") && isMerle;
   const isMantle = geno.includes("sisi");
 
-  // ABSOLUTE PATHS: /RepoName/assets/images/...
-  const pathBase = "/Canine-Colour-Genetics/assets/images/greatdane/";
-
-  if (isBlue) layers.push(pathBase + "blue_base.PNG");
-  else if (isSable) layers.push(pathBase + "fawn_base.PNG");
-  else layers.push(pathBase + "black_base.PNG");
+  if (isBlue) layers.push("assets/images/greatdane/blue_base.PNG");
+  else if (isSable) layers.push("assets/images/greatdane/fawn_base.PNG");
+  else layers.push("assets/images/greatdane/black_base.PNG");
 
   if (isKbr)
     layers.push(
-      isBlue ? pathBase + "blue_brindle.PNG" : pathBase + "fawn_brindle.PNG",
+      isBlue
+        ? "assets/images/greatdane/blue_brindle.PNG"
+        : "assets/images/greatdane/fawn_brindle.PNG",
     );
   if (isEm)
     layers.push(
-      isBlue ? pathBase + "blue_mask.PNG" : pathBase + "black_mask.PNG",
+      isBlue
+        ? "assets/images/greatdane/blue_mask.PNG"
+        : "assets/images/greatdane/black_mask.PNG",
     );
-  if (isHarlequin) layers.push(pathBase + "harlequin.PNG");
+  if (isHarlequin) layers.push("assets/images/greatdane/harlequin.PNG");
   else if (isMerle)
-    layers.push(isBlue ? pathBase + "blue_merle.PNG" : pathBase + "merle.PNG");
-  if (isMantle) layers.push(pathBase + "mantle.PNG");
-  layers.push(pathBase + "lineart.PNG");
+    layers.push(
+      isBlue
+        ? "assets/images/greatdane/blue_merle.PNG"
+        : "assets/images/greatdane/merle.PNG",
+    );
+  if (isMantle) layers.push("assets/images/greatdane/mantle.PNG");
+  layers.push("assets/images/greatdane/lineart.PNG");
 
   for (const src of layers) {
     await new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
-        ctx.drawImage(img, 0, 0, 100, 100);
+        ctx.drawImage(img, 0, 0, 1000, 1000);
         resolve();
       };
-      img.onerror = () => {
-        console.log("Failed to load:", src);
-        resolve();
-      };
+      img.onerror = () => resolve();
       img.src = src;
     });
   }

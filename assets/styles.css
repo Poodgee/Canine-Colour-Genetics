@@ -3,19 +3,29 @@
    These define the a a single place to change colors for the whole site.
    ========================================================================== */
 :root {
-  --bg-color: #0a0a0c;            /* Deepest black for the main page background */
-  --panel-bg: #16161a;            /* Slightly lighter dark for panels/cards */
-  --panel-border: #2a2a30;        /* Subtle border to define panel edges */
-  --accent: #a78bfa;              /* The main purple brand color */
-  --accent-hover: #c4b5fd;        /* Lighter purple for hover states */
-  --text-main: #f1f5f9;           /* Off-white for primary text */
-  --text-muted: #94a3b8;          /* Grey for labels and secondary text */
-  --card-radius: 12px;            /* Rounded corners for all panels */
+  --bg-color: #0a0a0c;
+  /* Deepest black for the main page background */
+  --panel-bg: #16161a;
+  /* Slightly lighter dark for panels/cards */
+  --panel-border: #2a2a30;
+  /* Subtle border to define panel edges */
+  --accent: #a78bfa;
+  /* The main purple brand color */
+  --accent-hover: #c4b5fd;
+  /* Lighter purple for hover states */
+  --text-main: #f1f5f9;
+  /* Off-white for primary text */
+  --text-muted: #94a3b8;
+  /* Grey for labels and secondary text */
+  --card-radius: 12px;
+  /* Rounded corners for all panels */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Basic Reset: Ensures padding/borders don't break the layout width */
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -26,9 +36,9 @@ body {
 }
 
 /* The main centering wrapper for the whole page */
-.container { 
-  max-width: 1600px; 
-  margin: 0 auto; 
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 /* ==========================================================================
@@ -48,15 +58,17 @@ header h1 {
   margin: 0;
 }
 
-.back-link, .source-link {
+.back-link,
+.source-link {
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.2s;
 }
 
-.back-link:hover, .source-link:hover { 
-  color: var(--accent); 
+.back-link:hover,
+.source-link:hover {
+  color: var(--accent);
 }
 
 /* ==========================================================================
@@ -65,7 +77,8 @@ header h1 {
    ========================================================================== */
 .app-layout {
   display: grid;
-  grid-template-columns: 300px 1fr 350px; /* Fixed sidebars, flexible middle */
+  grid-template-columns: 300px 1fr 350px;
+  /* Fixed sidebars, flexible middle */
   gap: 30px;
   align-items: start;
 }
@@ -109,10 +122,10 @@ header h1 {
   margin-bottom: 20px;
 }
 
-.locus-form { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 12px; 
+.locus-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .locus-row {
@@ -171,9 +184,9 @@ button {
   border: none;
 }
 
-.btn-primary:hover { 
-  background: var(--accent-hover); 
-  transform: translateY(-2px); 
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
@@ -182,8 +195,8 @@ button {
   border: 1px solid var(--panel-border);
 }
 
-.btn-secondary:hover { 
-  background: rgba(167, 139, 250, 0.1); 
+.btn-secondary:hover {
+  background: rgba(167, 139, 250, 0.1);
 }
 
 /* ==========================================================================
@@ -203,23 +216,37 @@ button {
   margin-bottom: 20px;
 }
 
-.pred-header h3 { margin: 0; color: var(--accent); }
+.pred-header h3 {
+  margin: 0;
+  color: var(--accent);
+}
 
 #predictions-area {
-  max-height: 600px; /* Fixed height for the scroll box */
+  max-height: 600px;
+  /* Fixed height for the scroll box */
   overflow-y: auto;
   padding-right: 10px;
 }
 
 /* Custom Scrollbar for the prediction list */
-#predictions-area::-webkit-scrollbar { width: 6px; }
-#predictions-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-#predictions-area::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+#predictions-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+#predictions-area::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+#predictions-area::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 10px;
+}
 
 /* Updated Split Layout: Image on the RIGHT */
 .prediction-item {
-  display: flex; 
-  flex-direction: row-reverse; /* This moves the image to the right side */
+  display: flex;
+  flex-direction: row-reverse;
+  /* This moves the image to the right side */
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -231,8 +258,15 @@ button {
 }
 
 /* Background colors for warnings */
-.bg-lethal { background: rgba(255, 77, 77, 0.15) !important; border-left-color: #ff4d4d !important; }
-.bg-doublemerle { background: rgba(255, 255, 102, 0.1) !important; border-left-color: #ffff66 !important; }
+.bg-lethal {
+  background: rgba(255, 77, 77, 0.15) !important;
+  border-left-color: #ff4d4d !important;
+}
+
+.bg-doublemerle {
+  background: rgba(255, 255, 102, 0.1) !important;
+  border-left-color: #ffff66 !important;
+}
 
 .prediction-text {
   display: flex;
@@ -276,14 +310,17 @@ button {
    7. IMAGE STACK & LIGHTBOX
    ========================================================================== */
 .pheno-stack {
-  width: 80px;
-  height: 80px;
+  position: relative;
+  width: 150px;
+  /* Increased from 80px */
+  height: 150px;
+  /* Increased from 80px */
   flex-shrink: 0;
-  cursor: pointer;
+  background: #0f0f12;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--panel-border);
-  background: #0f0f12;
+  cursor: pointer;
 }
 
 .pheno-stack img {
@@ -294,8 +331,11 @@ button {
 
 .lightbox {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
   display: none;
   justify-content: center;
   align-items: center;
@@ -303,30 +343,54 @@ button {
   cursor: pointer;
 }
 
+/* High-res lightbox image */
 .lightbox img {
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 1000px;
+  /* Allow it to grow larger */
+  max-height: 1000px;
   border: 3px solid var(--accent);
   border-radius: 12px;
+  object-fit: contain;
 }
 
 /* ==========================================================================
    8. LEGEND & PIE CHART
    ========================================================================== */
-#legend-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-#legend-table td, #legend-table th {
+#legend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+#legend-table td,
+#legend-table th {
   padding: 8px;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-#legend-table th { color: var(--accent); }
 
-.pie-card { position: relative; display: flex; justify-content: center; }
+#legend-table th {
+  color: var(--accent);
+}
+
+.pie-card {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
 .pie-tooltip {
-  position: absolute; background: rgba(0,0,0,0.8); color: white;
-  padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;
-  pointer-events: none; display: none; z-index: 10;
-  white-space: nowrap; border: 1px solid var(--accent);
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  display: none;
+  z-index: 10;
+  white-space: nowrap;
+  border: 1px solid var(--accent);
 }
 
 /* ==========================================================================
@@ -339,7 +403,8 @@ button {
 
 .sources-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Fixed 3 columns */
+  grid-template-columns: repeat(3, 1fr);
+  /* Fixed 3 columns */
   gap: 20px;
   margin-top: 15px;
 }
@@ -363,12 +428,20 @@ button {
   border-radius: 8px;
   display: none;
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   border: 1px solid var(--accent);
 }
 
 @media (max-width: 1100px) {
-  .app-layout { grid-template-columns: 1fr; }
-  .parents-container { grid-template-columns: 1fr; }
-  .sources-grid { grid-template-columns: 1fr; }
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .parents-container {
+    grid-template-columns: 1fr;
+  }
+
+  .sources-grid {
+    grid-template-columns: 1fr;
+  }
 }
