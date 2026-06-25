@@ -425,38 +425,45 @@ async function createMergedImage(geno) {
   const isHarlequin = geno.includes("H") && isMerle;
   const isMantle = geno.includes("sisi");
 
-  // Use the absolute root path to avoid 404s regardless of which page we are on
   const pathBase = "/Canine-Colour-Genetics/assets/images/greatdane/";
 
-  // Layer 1: Base
-  if (isBlue) layers.push(pathBase + "blue_base.PNG");
-  else if (isSable) layers.push(pathBase + "fawn_base.PNG");
-  else layers.push(pathBase + "black_base.PNG");
+  // --- FIXED BASE LAYER LOGIC ---
+  // 1. Blue always comes first
+  if (isBlue) {
+    layers.push(pathBase + "blue_base.PNG");
+  }
+  // 2. Dominant Black (KB) overrides the A-Locus (Sable)
+  else if (isKB) {
+    layers.push(pathBase + "black_base.PNG");
+  }
+  // 3. If not KB, check if they are Sable/Fawn
+  else if (isSable) {
+    layers.push(pathBase + "fawn_base.PNG");
+  }
+  // 4. Otherwise, they are Recessive Black
+  else {
+    layers.push(pathBase + "black_base.PNG");
+  }
 
-  // Layer 2: Brindle
+  // --- REST OF LAYERS (Order is important) ---
   if (isKbr) {
     layers.push(
       isBlue ? pathBase + "blue_brindle.PNG" : pathBase + "fawn_brindle.PNG",
     );
   }
-
-  // Layer 3: Mask
   if (isEm) {
     layers.push(
       isBlue ? pathBase + "blue_mask.PNG" : pathBase + "black_mask.PNG",
     );
   }
-
-  // Layer 4: Merle/Harlequin
-  if (isHarlequin) layers.push(pathBase + "harlequin.PNG");
-  else if (isMerle) {
+  if (isHarlequin) {
+    layers.push(pathBase + "harlequin.PNG");
+  } else if (isMerle) {
     layers.push(isBlue ? pathBase + "blue_merle.PNG" : pathBase + "merle.PNG");
   }
-
-  // Layer 5: Mantle
-  if (isMantle) layers.push(pathBase + "mantle.PNG");
-
-  // Layer 6: Lineart
+  if (isMantle) {
+    layers.push(pathBase + "mantle.PNG");
+  }
   layers.push(pathBase + "lineart.PNG");
 
   for (const src of layers) {
@@ -468,8 +475,8 @@ async function createMergedImage(geno) {
         resolve();
       };
       img.onerror = () => {
-        console.error("Failed to load image layer:", src);
-        resolve(); // Skip failed images so the script doesn't hang
+        console.error("Missing layer:", src);
+        resolve();
       };
       img.src = src;
     });
