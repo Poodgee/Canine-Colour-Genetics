@@ -312,8 +312,8 @@ button {
 .pheno-stack {
   /*default 80px*/
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   flex-shrink: 0;
   background: #0f0f12;
   border-radius: 8px;

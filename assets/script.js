@@ -220,8 +220,12 @@ function determinePhenotype(geno) {
   let warning = "";
   let standards = { akc: true, fci: true };
 
+  // HELPER: Prevents the "undefined" crash
+  const safeGet = (locus) => (geno[locus] ? geno[locus] : "");
+
   if (url.includes("yakutian")) {
-    if (geno["E"] === "ee")
+    const eGeno = safeGet("E");
+    if (eGeno === "ee")
       return {
         name: "Recessive Yellow/Red",
         carrierInfo: "",
@@ -229,21 +233,30 @@ function determinePhenotype(geno) {
         standards: { akc: true, fci: true },
         warning: "",
       };
-    const isMasked = geno["E"].includes("Em");
-    if (!isMasked && geno["E"] === "Ee") carrierNotes.push("Mask Carrier");
-    const isLiver = geno["B"] === "bb",
-      isBlue = geno["D"] === "dd",
-      isIsabella = isLiver && isBlue;
-    if (geno["B"] === "Bb") carrierNotes.push("Liver Carrier");
-    if (geno["D"] === "Dd") carrierNotes.push("Blue Carrier");
-    const hasKB = geno["K"].includes("KB");
-    if (geno["K"] === "KBky") carrierNotes.push("Non-black Carrier");
-    const aGeno = safeGet(geno, "A");
+
+    const isMasked = eGeno.includes("Em");
+    if (!isMasked && eGeno === "Ee") carrierNotes.push("Mask Carrier");
+
+    const bGeno = safeGet("B");
+    const dGeno = safeGet("D");
+    const isLiver = bGeno === "bb";
+    const isBlue = dGeno === "dd";
+    const isIsabella = isLiver && isBlue;
+
+    if (bGeno === "Bb") carrierNotes.push("Liver Carrier");
+    if (dGeno === "Dd") carrierNotes.push("Blue Carrier");
+
+    const kGeno = safeGet("K");
+    const hasKB = kGeno.includes("KB");
+    if (kGeno === "KBky") carrierNotes.push("Non-black Carrier");
+
+    const aGeno = safeGet("A");
     let aColor = "Recessive Black";
     if (aGeno.toLowerCase().includes("ay")) aColor = "Sable/Fawn";
     else if (aGeno.toLowerCase().includes("aw")) aColor = "Wild Type";
     else if (aGeno.toLowerCase().includes("at"))
       aColor = "Black and Tan (Tri-colour)";
+
     let name = isIsabella ? "Isabella" : hasKB ? "Dominant Black" : aColor;
     if (!isIsabella && hasKB) {
       if (isLiver) name = "Liver Black";
@@ -259,9 +272,11 @@ function determinePhenotype(geno) {
         aGeno.toLowerCase().includes("at"))
     )
       name += " (with Mask)";
-    const sGeno = safeGet(geno, "S");
+
+    const sGeno = safeGet("S");
     if (sGeno === "spsp") name = `Intensive White & ${name}`;
     else if (sGeno === "Ssp") name = `White & ${name}`;
+
     return {
       name,
       carrierInfo: carrierNotes.join(", "),
@@ -273,12 +288,14 @@ function determinePhenotype(geno) {
       warning: "",
     };
   } else if (url.includes("greatdane")) {
-    const mGeno = safeGet(geno, "M"),
-      hGeno = safeGet(geno, "H"),
-      kGeno = safeGet(geno, "K"),
-      aGeno = safeGet(geno, "A"),
-      dGeno = safeGet(geno, "D"),
-      sGeno = safeGet(geno, "S");
+    const mGeno = safeGet("M");
+    const hGeno = safeGet("H");
+    const kGeno = safeGet("K");
+    const aGeno = safeGet("A");
+    const dGeno = safeGet("D");
+    const sGeno = safeGet("S");
+
+    // 1. LETHAL CHECK
     if (hGeno === "HH")
       return {
         name: "Embryonic Lethal",
@@ -287,26 +304,32 @@ function determinePhenotype(geno) {
         standards: { akc: false, fci: false },
         warning: "lethal",
       };
+
+    // 2. HEALTH WARNINGS
     if (mGeno === "MM") {
       warning = "⚠️ DOUBLE MERLE: High risk of deafness/blindness";
       standards.akc = false;
       standards.fci = false;
     }
+
     const isBlue = dGeno === "dd";
     const hasKB = kGeno.includes("KB");
-    const hasKbr = kGeno.includes("kbr");
+    const hasKbr = kGeno.includes("kbr"); // Note: Fix typo here if needed: kGeno.includes('kbr')
+    const hasKbr_fixed = kGeno.includes("kbr");
+
     if (dGeno === "Dd") carrierNotes.push("Blue Carrier");
     if (kGeno === "KBky") carrierNotes.push("Non-black Carrier");
     if (sGeno === "Ssi") carrierNotes.push("Mantle Carrier");
 
+    // 3. SUBSCRIPT: Genetic type first
     let geneticType = "Recessive Black";
     if (hasKB) geneticType = "Dominant Black";
-    else if (hasKbr) geneticType = "Brindle";
+    else if (hasKbr_fixed) geneticType = "Brindle";
     carrierNotes.unshift(geneticType);
 
+    // 4. VISUAL NAME
     let name = "Black";
-    // FIXED: Case-insensitive check for 'ay'
-    if (hasKbr) {
+    if (hasKbr_fixed) {
       name = aGeno.toLowerCase().includes("ay") ? "Fawn Brindle" : "Brindle";
     } else if (!hasKB) {
       if (aGeno.toLowerCase().includes("ay")) name = "Sable/Fawn";
@@ -317,11 +340,18 @@ function determinePhenotype(geno) {
     }
 
     if (isBlue) name = `Blue ${name}`;
-    const isMerle = mGeno.includes("M"),
-      isHarlequin = hGeno.includes("H") && isMerle;
+
+    const isMerle = mGeno.includes("M");
+    const isHarlequin = hGeno.includes("H") && isMerle;
     if (isHarlequin) name = `Harlequin ${name}`;
     else if (isMerle) name = `Merle ${name}`;
     if (sGeno === "sisi") name = `Mantle ${name}`;
+
+    // 5. STANDARD CHECK (Restored)
+    if (isBlue && (isMerle || isHarlequin)) {
+      standards.akc = false;
+      standards.fci = false;
+    }
 
     return {
       name,
@@ -331,6 +361,7 @@ function determinePhenotype(geno) {
       warning: warning || (mGeno === "MM" ? "doublemerle" : ""),
     };
   }
+
   return {
     name: "Unknown",
     carrierInfo: "",
@@ -360,6 +391,7 @@ async function renderPredictions(items) {
   for (const it of items) {
     const div = document.createElement("div");
     div.className = "prediction-item";
+
     if (it.warning === "lethal") div.classList.add("bg-lethal");
     if (it.warning === "doublemerle") div.classList.add("bg-doublemerle");
 
@@ -369,17 +401,7 @@ async function renderPredictions(items) {
       const imgStack = document.createElement("div");
       imgStack.className = "pheno-stack";
 
-      const geno = it.genoStr;
-      const isBlue = geno.includes("dd");
-      const isSable = geno.toLowerCase().includes("ay"); // CASE-INSENSITIVE
-      const isKB = geno.includes("KB");
-      const isKbr = geno.includes("kbr");
-      const isEm = geno.includes("Em");
-      const isMerle = geno.includes("M");
-      const isHarlequin = geno.includes("H") && isMerle;
-      const isMantle = geno.includes("sisi");
-
-      const mergedImageSrc = await createMergedImage(geno);
+      const mergedImageSrc = await createMergedImage(it.genoStr);
       const img = document.createElement("img");
       img.src = mergedImageSrc;
       img.onclick = () => {
@@ -392,8 +414,10 @@ async function renderPredictions(items) {
 
     const textDiv = document.createElement("div");
     textDiv.className = "prediction-text";
-    const akcIcon = it.standards?.akc ? "✅" : "⚪";
-    const fciIcon = it.standards?.fci ? "💠" : "⚪";
+
+    //If not standard, return an empty string instead of a white circle
+    const akcIcon = it.standards?.akc ? "✅" : "";
+    const fciIcon = it.standards?.fci ? "💠" : "";
 
     textDiv.innerHTML = `
       <div class="prediction-title">
